@@ -3,7 +3,8 @@ import torch.nn as nn
 
 
 class Trainer:
-    def __init__(self, model, train_data, model_path):
+    def __init__(self, model, train_data, model_path, num_epochs, batch_size,
+                 learning_rate, weight_decay):
 
         '''
         :param model: the model
@@ -14,6 +15,10 @@ class Trainer:
         self._model = model
         self.train_data = train_data
         self._model_path = model_path
+        self._num_epochs = num_epochs
+        self._batch_size = batch_size
+        self._learning_rate = learning_rate
+        self._weight_decay = weight_decay
 
     # @property
     # def data(self):
@@ -35,11 +40,11 @@ class Trainer:
         # Construct our loss function and an Optimizer. Training this strange model with
         # vanilla stochastic gradient descent is tough, so we use momentum
 
-        # TODO: read from json
-        num_epochs = 1
-        batch_size = 512
-        learning_rate = 0.001
-        weight_decay = 0.001
+
+        # num_epochs = 1
+        # batch_size = 512
+        # learning_rate = 0.001
+        # weight_decay = 0.001
 
         device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
         print(device)
@@ -49,10 +54,10 @@ class Trainer:
 
         # TODO: read from json
         criterion = nn.BCELoss()
-        optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
-        train_loader = torch.utils.data.DataLoader(self.train_data, batch_size=batch_size, shuffle=True)
+        optimizer = torch.optim.Adam(model.parameters(), lr=self._learning_rate, weight_decay=self._weight_decay)
+        train_loader = torch.utils.data.DataLoader(self.train_data, batch_size=self._batch_size, shuffle=True)
 
-        for epoch in range(num_epochs):
+        for epoch in range(self._num_epochs):
             for i, (X, y) in enumerate(train_loader):
                 X = X.to(device)
                 y = y.to(device)

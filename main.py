@@ -5,6 +5,8 @@ from data.data_loader import Data
 from train.trainer import Trainer
 from evaluate.evaluator import Evaluator
 from utils.utils import Utils
+from datetime import datetime
+import os
 
 if __name__ == '__main__':
     # 1\ Parses the command line arguments and returns as a simple namespace.
@@ -32,6 +34,8 @@ if __name__ == '__main__':
 
     # 3\ Get the configer.
     config = Utils.read_json(args.config)
+    if not os.path.exists(config.output_evaluation_data_path):
+        os.makedirs(config.output_evaluation_data_path)
 
     # 4\ Selecting the execution mode.
     if args.exe_mode == 'train':
@@ -43,24 +47,34 @@ if __name__ == '__main__':
             config.subset)
         print("--------loader finish------------")
 
-        trainer = Trainer(config.get_model(), train_data_loader, config.model_path)
+        trainer = Trainer(config.get_model(), train_data_loader, config.model_path,
+                          config.num_epochs, config.batch_size, config.learning_rate,
+                          config.weight_decay)
+        print("train start time: ", datetime.now())
         trainer.train() # include save model to destination
+        print("train end time: ", datetime.now())
 
     elif args.exe_mode == 'test':
         train_data_loader = Data(
             config.X_train_data_path,
             config.y_train_data_path,
+            config.cell_cluster,
             config.subset)
+        print("----------train data loader done--------")
 
         test_data_loader = Data(
             config.X_test_data_path,
             config.y_test_data_path,
+            config.cell_cluster,
             config.subset)
+        print("----------test data loader done--------")
 
         #tester = Tester(config.model_path, test_data_loader)
         #tester.test()
 
-        evaluator = Evaluator(train_data_loader, test_data_loader, config.model_path, config.output_evaluation_data_path)
+        evaluator = Evaluator(train_data_loader, test_data_loader, config.model_path,
+                              config.output_evaluation_data_path, config.batch_size,
+                              config.n_class)
         evaluator.evaluate()
 
     else:

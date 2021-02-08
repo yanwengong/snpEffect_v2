@@ -5,10 +5,12 @@ from sklearn.metrics import roc_curve, auc
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy import interp
+import pandas as pd
 
 
 class Evaluator:
-    def __init__(self, train_data, test_data, model_path, output_evaluation_data_path):
+    def __init__(self, train_data, test_data, model_path, output_evaluation_data_path,
+                 batch_size, n_class):
         '''
 
         :param train_data: train data
@@ -20,41 +22,43 @@ class Evaluator:
         self._test_data = test_data
         self._mode = torch.load(model_path)
         self._output_evaluation_data_path = output_evaluation_data_path
+        self._batch_size = batch_size
+        self.n_class = n_class
 
     def _predict(self, data_loader):
         self._mode.eval()
         device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
         with torch.no_grad():
-            y_hat = []
-            y = []
-            # TODO: check the shape
+
+            y_arr = np.empty((0, self.n_class))
+            y_hat_arr = np.empty((0, self.n_class))
+
             for X, y in data_loader:
                 X = X.to(device)
                 #images = torch.reshape(images, (images.shape[0], images.shape[2], images.shape[1]))
                 y = y.to(device)
                 outputs = self._mode(X.float())
-                print('outputs', outputs.shape, outputs)
+                #print('outputs', outputs.shape, outputs)
                 # _, pred = torch.max(outputs.data, 1)
                 y_hat = torch.round(outputs)
                 y = y.float()
-                y.extend(y.tolist())
-                y_hat.extend(y_hat.reshape(-1).tolist())
+                #y.extend(y.tolist())
+                y_arr = np.concatenate((y_arr, y.numpy()))
+                y_hat_arr = np.concatenate((y_hat_arr, y_hat.numpy()))
+                #y_hat_arr.append(y_hat.reshape(-1).tolist())
 
             print("------------------ evaluation shape --------------------")
-            print(y.shape)
-            print(y_hat.shape)
+            print(y_arr.shape)
+            print(y_hat_arr.shape)
             print("------------------ done --------------------")
 
-            return y, y_hat
+            return y_arr, y_hat_arr
 
     def evaluate(self):
-        # TODO: read from json
-        num_epochs = 50
-        batch_size = 64
         device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
-        train_loader = torch.utils.data.DataLoader(self._train_data, batch_size=batch_size, shuffle=True)
-        test_loader = torch.utils.data.DataLoader(self._test_data, batch_size=batch_size, shuffle=True)
+        train_loader = torch.utils.data.DataLoader(self._train_data, batch_size=self._batch_size, shuffle=True)
+        test_loader = torch.utils.data.DataLoader(self._test_data, batch_size=self._batch_size, shuffle=True)
 
         y_train, y_train_hat = self._predict(train_loader)
         y_test, y_test_hat = self._predict(test_loader)
@@ -88,12 +92,12 @@ class Evaluator:
             individual_y_train_hat = y_train_hat[:, i]
             individual_y_test = y_test[:, i]
             individual_y_test_hat = y_test_hat[:, i]
-            print("~~~~~~~~~~~~~~~~~~~~~~~")
-            print(y_train.shape)
-            print(y_train_hat.shape)
-            print(y_test.shape)
-            print(y_test_hat.shape)
-            print("~~~~~~~~~~~~~~~~~~~~~~~~")
+            # print("~~~~~~~~~~~~~~~~~~~~~~~")
+            # print(y_train.shape)
+            # print(y_train_hat.shape)
+            # print(y_test.shape)
+            # print(y_test_hat.shape)
+            # print("~~~~~~~~~~~~~~~~~~~~~~~~")
 
             perf_metrics = self.get_individual_performance_metrics(
                 individual_y_train, individual_y_train_hat,
@@ -103,7 +107,6 @@ class Evaluator:
             perf_metrics.to_csv(os.path.join(plot_path, file_name))
 
             plot_name = "".join(["roc", str(i), ".pdf"])
-
             roc_auc_train = roc_auc_score(individual_y_train, individual_y_train_hat, average="micro")
             fpr_train, tpr_train, _ = roc_curve(individual_y_train, individual_y_train_hat)
 
@@ -123,7 +126,8 @@ class Evaluator:
             plt.ylabel('True Positive Rate')
             plt.title('Receiver operating characteristic curve')
             plt.legend(loc="lower right")
-            plt.savefig(plot_name)
+            plt.savefig(os.path.join(plot_path,plot_name))
+
 
     def get_overall_performance_metrics(self, y_train, y_train_hat, y_test, y_test_hat, threshold=0.5, average="micro"):
         metric_names = ['AUC', 'Accuracy', 'Precision', 'Recall', 'f1-score']
@@ -160,14 +164,13 @@ class Evaluator:
         fpr = dict()
         tpr = dict()
         roc_auc = dict()
-        n_class = y_train.shape[1]
         fpr["micro_train"], tpr["micro_train"], _ = roc_curve(y_train.ravel(), y_train_hat.ravel(), sample_weight=None)
         roc_auc["micro_train"] = auc(fpr["micro_train"], tpr["micro_train"])
         fpr["micro_test"], tpr["micro_test"], _ = roc_curve(y_test.ravel(), y_test_hat.ravel(), sample_weight=None)
         roc_auc["micro_test"] = auc(fpr["micro_test"], tpr["micro_test"])
-        fpr["macro_train"], tpr["macro_train"] = self._prepare_micro_roc(fpr, tpr, roc_auc, n_class, y_train, y_train_hat)
+        fpr["macro_train"], tpr["macro_train"] = self._prepare_micro_roc(fpr, tpr, roc_auc, self.n_class, y_train, y_train_hat)
         roc_auc["macro_train"] = auc(fpr["macro_train"], tpr["macro_train"])
-        fpr["macro_test"], tpr["macro_test"] = self._prepare_micro_roc(fpr, tpr, roc_auc, n_class, y_test, y_test_hat)
+        fpr["macro_test"], tpr["macro_test"] = self._prepare_micro_roc(fpr, tpr, roc_auc, self.n_class, y_test, y_test_hat)
         roc_auc["macro_test"] = auc(fpr["macro_test"], tpr["macro_test"])
         return fpr, tpr, roc_auc
 
