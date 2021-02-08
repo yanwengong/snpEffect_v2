@@ -1,7 +1,18 @@
+import torch
+import torch.nn as nn
+
+
 class Trainer:
-    def __init__(self, model, data_loader, model_path):
+    def __init__(self, model, train_data, model_path):
+
+        '''
+        :param model: the model
+        :param train_data: complete train data, include x and y
+        :param model_path: path the save the trained model
+        '''
+
         self._model = model
-        self._data_loader = data_loader
+        self.train_data = train_data
         self._model_path = model_path
 
     # @property
@@ -16,34 +27,51 @@ class Trainer:
         """ train """
 
         # Create Tensors to hold input and outputs.
-        x = self._data_loader.get_x()
+        #x = self._data_loader.get_x()
 
-        y = self._data_loader.get_y()
+        #y = self._data_loader.get_y()
 
         # Construct our model by instantiating the class defined above
         # Construct our loss function and an Optimizer. Training this strange model with
         # vanilla stochastic gradient descent is tough, so we use momentum
 
-        # might be configurable from config json
-        criterion = torch.nn.MSELoss(reduction='sum')
-        optimizer = torch.optim.SGD(self._model.parameters(), lr=1e-8, momentum=0.9)
+        # TODO: read from json
+        num_epochs = 1
+        batch_size = 512
+        learning_rate = 0.001
+        weight_decay = 0.001
 
-        for t in range(30000):
-            # Forward pass: Compute predicted y by passing x to the model
-            y_pred = self._model(x)
+        device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+        print(device)
+        print(torch.cuda.device_count())
+        model = self._model.to(device)
 
-            # Compute and print loss
-            loss = criterion(y_pred, y)
-            if t % 2000 == 1999:
-                print(t, loss.item())
 
-            # Zero gradients, perform a backward pass, and update the weights.
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
+        # TODO: read from json
+        criterion = nn.BCELoss()
+        optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
+        train_loader = torch.utils.data.DataLoader(self.train_data, batch_size=batch_size, shuffle=True)
 
-        print(f'Result: {self._model}')
+        for epoch in range(num_epochs):
+            for i, (X, y) in enumerate(train_loader):
+                X = X.to(device)
+                y = y.to(device)
+                # Forward pass: Compute predicted y by passing x to the model
+                y_pred = model(X.float())
+
+                # Compute and print loss
+                loss = criterion(y_pred.float(), y.float())
+                if epoch % 10 == 0:
+                    print(epoch, loss.item())
+
+                # Backward and optimize
+                # Zero gradients, perform a backward pass, and update the weights.
+                optimizer.zero_grad()
+                loss.backward()
+                optimizer.step()
+
+        #print(f'Result: {model}')
 
         # end
-        torch.save(self._model, self._model_path)
+        torch.save(model, self._model_path)
 
