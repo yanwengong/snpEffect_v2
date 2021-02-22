@@ -1,8 +1,8 @@
 {
-  "X_train_data_path": "/Users/yanwengong/Documents/JingZhang_lab/snp_effect/data/test_rsync_local_v2/input/X/X_train.npy",
-  "X_test_data_path": "/Users/yanwengong/Documents/JingZhang_lab/snp_effect/data/test_rsync_local_v2/input/X/X_test.npy",
-  "y_train_data_path": "/Users/yanwengong/Documents/JingZhang_lab/snp_effect/data/test_rsync_local_v2/input/y/y_train.npy",
-  "y_test_data_path": "/Users/yanwengong/Documents/JingZhang_lab/snp_effect/data/test_rsync_local_v2/input/y/y_test.npy",
+  "X_train_data_path": "/Users/yanwengong/Documents/JingZhang_lab/snp_effect/data/test_rsync_local_v2/input/X2/X_train.npy",
+  "X_test_data_path": "/Users/yanwengong/Documents/JingZhang_lab/snp_effect/data/test_rsync_local_v2/input/X2/X_test.npy",
+  "y_train_data_path": "/Users/yanwengong/Documents/JingZhang_lab/snp_effect/data/test_rsync_local_v2/input/y2/y_train.npy",
+  "y_test_data_path": "/Users/yanwengong/Documents/JingZhang_lab/snp_effect/data/test_rsync_local_v2/input/y2/y_test.npy",
   "model_name": "DanQ",
   "num_epochs": 1,
   "batch_size": 512,

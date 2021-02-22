@@ -1,0 +1,15 @@
+{
+  "X_train_data_path": "/home/yanweng/snp_effect/data/for_model_v2/input/X2/X_train.npy",
+  "X_test_data_path": "/home/yanweng/snp_effect/data/for_model_v2/input/X2/X_test.npy",
+  "y_train_data_path": "/home/yanweng/snp_effect/data/for_model_v2/input/y2/y_train.npy",
+  "y_test_data_path": "/home/yanweng/snp_effect/data/for_model_v2/input/y2/y_test.npy",
+  "model_name": "simple_DanQ",
+  "num_epochs": 50,
+  "batch_size": 256,
+  "learning_rate": 0.001,
+  "weight_decay": 0.001,
+  "cell_cluster": [1],
+  "model_path": "/home/yanweng/snp_effect/data/for_model_v2/output/0216_simpleDQ_pytorch_encode/model",
+  "output_evaluation_data_path": "/home/yanweng/snp_effect/data/for_model_v2/output/0216_simpleDQ_pytorch_encode",
+  "subset": "False"
+}

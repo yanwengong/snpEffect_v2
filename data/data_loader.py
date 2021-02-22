@@ -20,7 +20,7 @@ class Data(Dataset):
             self.X = self.X[X_index, :]
             self.y = self.y[y_index, :]
 
-        print("----------shape--------------")
+        print("----------initial data shape--------------")
         print(self.X.shape)
         print(self.y.shape)
 

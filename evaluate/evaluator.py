@@ -1,4 +1,5 @@
 import torch
+from torch import nn
 import os
 from sklearn.metrics import precision_score, accuracy_score, recall_score, f1_score, roc_auc_score
 from sklearn.metrics import roc_curve, auc
@@ -6,6 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy import interp
 import pandas as pd
+from tqdm import tqdm
 
 
 class Evaluator:
@@ -28,6 +30,7 @@ class Evaluator:
     def _predict(self, data_loader):
         self._mode.eval()
         device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+        #sm = torch.nn.functional.softmax()
         with torch.no_grad():
 
             y_arr = np.empty((0, self.n_class))
@@ -38,14 +41,33 @@ class Evaluator:
                 #images = torch.reshape(images, (images.shape[0], images.shape[2], images.shape[1]))
                 y = y.to(device)
                 outputs = self._mode(X.float())
-                #print('outputs', outputs.shape, outputs)
-                # _, pred = torch.max(outputs.data, 1)
-                y_hat = torch.round(outputs)
+                #print(torch.max(outputs.data, 1))
+
+                ##0206
+                #y_hat = sm(outputs, dim=1) # TODO: to check why keras compute prob when predict
+                #y_hat, top_class = prob.topk(1, dim=1) ## this is to return the top 1 value and index
+                ##0206
+
+                #print('outputs', outputs.shape, y_hat)
+                #_, pred = torch.max(outputs.data, 1)
+                #print(_)
+                #print(pred)
+
+                ## original
+                #y_hat = torch.round(outputs)
+                ## original
+                y_hat = outputs
                 y = y.float()
                 #y.extend(y.tolist())
-                y_arr = np.concatenate((y_arr, y.numpy()))
-                y_hat_arr = np.concatenate((y_hat_arr, y_hat.numpy()))
+
+                y_arr = np.concatenate((y_arr, y.cpu().numpy()))
+
+                ## original
+                y_hat_arr = np.concatenate((y_hat_arr, y_hat.cpu().numpy()))
+                ## original
+
                 #y_hat_arr.append(y_hat.reshape(-1).tolist())
+                #y_hat_arr = np.concatenate((y_hat_arr, pred.cpu().numpy()))
 
             print("------------------ evaluation shape --------------------")
             print(y_arr.shape)
@@ -53,6 +75,42 @@ class Evaluator:
             print("------------------ done --------------------")
 
             return y_arr, y_hat_arr
+
+    def _predict2(self, data_loader):
+        self._mode.eval()
+        device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+        test_loss = 0
+        correct = 0
+        y_pred = []
+        y_true = []
+        y_proba = []
+
+        with torch.no_grad():
+            for data, target in tqdm(data_loader):
+                data, target = data.to(device), target.to(device)
+                output = self._mode(data).squeeze()
+                test_loss += nn.BCELoss()(output, target).item() * 1e+1  # sum up batch loss
+                prob = (output)
+                y_probas = prob.cpu().numpy()
+                prob[prob >= 0.5] = 1
+                prob[prob < 0.5] = 0
+                correct += torch.sum(prob == target)
+                for i in range(len(prob)):
+                    y_proba.append(float(y_probas[i]))
+                    y_pred.append(float(prob[i]))
+                    y_true.append(float(target[i]))
+            #target_names = ['Negative', 'Positive']
+            # roc(y_true,y_proba)
+            # prc(y_true,y_proba)
+            #print(classification_report(y_true, y_pred, target_names=target_names))
+
+            print("---------new y_proba--------------")
+            print(y_proba)
+            print("---------new y_proba done--------------")
+            return y_pred, y_true, y_proba
+
+
+
 
     def evaluate(self):
         device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
@@ -63,6 +121,10 @@ class Evaluator:
         y_train, y_train_hat = self._predict(train_loader)
         y_test, y_test_hat = self._predict(test_loader)
 
+        #y_train_pred2, y_train2, y_train_prob2 = self._predict2(train_loader)
+        #y_test_pred2, y_test2, y_test_prob2 = self._predict2(test_loader)
+
+
         # calculate and save overall performance metrics
         perf_metrics = self.get_overall_performance_metrics(
             y_train, self._format(y_train_hat),
@@ -72,6 +134,7 @@ class Evaluator:
         # file_name = "".join(["perf_metrics", ".csv"])
         perf_metrics.to_csv(os.path.join(self._output_evaluation_data_path, "perf_metrics.csv"))
 
+        print("overall metrics calculation done")
 
         # plot_name = "".join(["roc", ".pdf"])
         # plot overall roc
@@ -80,11 +143,19 @@ class Evaluator:
             y_test, y_test_hat,
             os.path.join(self._output_evaluation_data_path, "roc.pdf"))
 
+        print("overall roc curve done")
+
         # ploc overall roc and save individual metrics
+        print("----------below is y_train_hat---------")
+        print(y_train_hat)
+        print("----------below is y_test_hat----------")
+        print(y_test_hat)
         self.plot_individual_roc(
             y_train, y_train_hat,
             y_test, y_test_hat,
             self._output_evaluation_data_path)
+
+        print("individual metrics and roc curve done")
 
     def plot_individual_roc(self, y_train, y_train_hat, y_test, y_test_hat, plot_path):
         for i in range(y_train.shape[1]):
