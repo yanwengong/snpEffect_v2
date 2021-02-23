@@ -4,29 +4,39 @@ from model.danq import DanQ, simple_DanQ
 class Config():
 
     def __init__(self,
-                 X_train_data_path,
-                 X_test_data_path,
-                 y_train_data_path,
-                 y_test_data_path,
+                 pos_forward_path,
+                 encode_path,
+                 label_path,
+                 encode_n,
+                 # X_train_data_path, # TODO: question, why these four does not have property functions
+                 # X_test_data_path,
+                 # y_train_data_path,
+                 # y_test_data_path,
                  model_name,
                  num_epochs,
                  batch_size,
                  learning_rate,
                  weight_decay,
+                 weight_value,
                  model_path,
                  output_evaluation_data_path,
                  subset,
                  cell_cluster):
 
-        self.X_train_data_path = X_train_data_path
-        self.X_test_data_path = X_test_data_path
-        self.y_train_data_path = y_train_data_path
-        self.y_test_data_path = y_test_data_path
+        self.pos_forward_path = pos_forward_path
+        self.encode_path = encode_path
+        self.label_path = label_path
+        self.encode_n = encode_n
+        # self.X_train_data_path = X_train_data_path
+        # self.X_test_data_path = X_test_data_path
+        # self.y_train_data_path = y_train_data_path
+        # self.y_test_data_path = y_test_data_path
         self._model_name = model_name
         self._num_epochs = num_epochs
         self._batch_size = batch_size
         self._learning_rate = learning_rate
         self._weight_decay = weight_decay
+        self.weight_value = weight_value
         self._model_path = model_path
         self._output_evaluation_data_path = output_evaluation_data_path
         self._subset = subset
@@ -105,6 +115,8 @@ class Config():
     # def subset(self, subset):
     #     self._subset = subset
 
+
+    # TODO: move this part out to model folder as a new model registration class
     def get_model(self):
         if self._model_name == "DanQ":
             return DanQ(self.n_class)

@@ -1,6 +1,7 @@
 import argparse
 import torch
 from config.config import Config
+from data.pre_processor import Processor
 from data.data_loader import Data
 from train.trainer import Trainer
 from evaluate.evaluator import Evaluator
@@ -10,13 +11,11 @@ import os
 
 if __name__ == '__main__':
     # 1\ Parses the command line arguments and returns as a simple namespace.
+    print("--------start------------")
 
     parser = argparse.ArgumentParser(description='main.py')
     parser.add_argument('-e', '--exe_mode', default='train', help='The execution mode.(train/test)')
     parser.add_argument('-c', '--config', default='./config/config_1.json', help='The config file of experiment.')
-    #parser.add_argument('-m', '--model_path', default='./model/model_1', help='The path to save model or load the saved model')
-    # parser.add_argument('-i', '--identifier', default=0, help='The run id of experiment.')
-    # parser.add_argument('-v', '--verbosity', default=0, help='The verbosity of training/testing process.')
     args = parser.parse_args()
 
     # 2\ Configure the Check the Environment.
@@ -37,40 +36,48 @@ if __name__ == '__main__':
     if not os.path.exists(config.output_evaluation_data_path):
         os.makedirs(config.output_evaluation_data_path)
 
+    # 4\ Load, process and split the data set
+    print("--------processor start------------")
+    processor = Processor(config.pos_forward_path, config.encode_path, config.label_path, config.encode_n)
+    data, label = processor.concate_data()
+    data_train, data_test, label_train, label_test = processor.split_train_test(data, label)
+
     # 4\ Selecting the execution mode.
     if args.exe_mode == 'train':
-        # config.set_reproducibility()
-        train_data_loader = Data(
-            config.X_train_data_path,
-            config.y_train_data_path,
-            config.cell_cluster,
-            config.subset)
+        print("--------loader start------------")
+        train_data_loader = Data(data_train, label_train, config.cell_cluster, config.subset)
+
+        # train_data_loader = Data(
+        #     config.X_train_data_path,
+        #     config.y_train_data_path,
+        #     config.cell_cluster,
+        #     config.subset)
         print("--------loader finish------------")
 
         trainer = Trainer(config.get_model(), train_data_loader, config.model_path,
                           config.num_epochs, config.batch_size, config.learning_rate,
-                          config.weight_decay)
+                          config.weight_decay, config.weight_value)
         print("train start time: ", datetime.now())
         trainer.train() # include save model to destination
         print("train end time: ", datetime.now())
 
     elif args.exe_mode == 'test':
-        train_data_loader = Data(
-            config.X_train_data_path,
-            config.y_train_data_path,
-            config.cell_cluster,
-            config.subset)
+        train_data_loader = Data(data_train, label_train, config.cell_cluster, config.subset)
+
+        # train_data_loader = Data(
+        #     config.X_train_data_path,
+        #     config.y_train_data_path,
+        #     config.cell_cluster,
+        #     config.subset)
         print("----------train data loader done--------")
+        test_data_loader = Data(data_test, label_test, config.cell_cluster, config.subset)
 
-        test_data_loader = Data(
-            config.X_test_data_path,
-            config.y_test_data_path,
-            config.cell_cluster,
-            config.subset)
+        # test_data_loader = Data(
+        #     config.X_test_data_path,
+        #     config.y_test_data_path,
+        #     config.cell_cluster,
+        #     config.subset)
         print("----------test data loader done--------")
-
-        #tester = Tester(config.model_path, test_data_loader)
-        #tester.test()
 
         evaluator = Evaluator(train_data_loader, test_data_loader, config.model_path,
                               config.output_evaluation_data_path, config.batch_size,

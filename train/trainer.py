@@ -4,7 +4,7 @@ import torch.nn as nn
 
 class Trainer:
     def __init__(self, model, train_data, model_path, num_epochs, batch_size,
-                 learning_rate, weight_decay):
+                 learning_rate, weight_decay, weight):
 
         '''
         :param model: the model
@@ -19,6 +19,7 @@ class Trainer:
         self._batch_size = batch_size
         self._learning_rate = learning_rate
         self._weight_decay = weight_decay
+        self.weight = weight
 
     # @property
     # def data(self):
@@ -55,7 +56,7 @@ class Trainer:
         # TODO: read from json
         #criterion = nn.BCELoss()
         #weight = torch.tensor([1.0, 2.0, 1.0])
-        criterion = nn.BCELoss(weight = torch.tensor([329075/76652])).to(device) ## for cluster 1(none dominant)
+        criterion = nn.BCELoss(weight = torch.tensor([self.weight])).to(device) ## for cluster 1(none dominant)
         optimizer = torch.optim.Adam(model.parameters(), lr=self._learning_rate, weight_decay=self._weight_decay)
         train_loader = torch.utils.data.DataLoader(self.train_data, batch_size=self._batch_size, shuffle=True)
 
@@ -69,13 +70,12 @@ class Trainer:
                 # Compute and print loss
                 loss = criterion(y_pred.float(), y.float())
 
-
                 # Backward and optimize
                 # Zero gradients, perform a backward pass, and update the weights.
                 optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
-            if epoch % 10 == 0:
+            if epoch % 1 == 0:
                 print(epoch, loss.item())
 
         #print(f'Result: {model}')

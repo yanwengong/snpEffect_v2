@@ -1,8 +1,16 @@
 {
-  "input_train_data_path": "/Users/yanwengong/Documents/JingZhang_lab/snp_effect/data/test_rsync_local_v2/input/X/X_train.npy",
-  "input_test_data_path": "/Users/yanwengong/Documents/JingZhang_lab/snp_effect/data/test_rsync_local_v2/input/X/y_test.npy",
-  "model_name": "DanQ",
-  "model_path": "./",
-  "output_evaluation_data_path": "./",
-  "subset": false
+  "pos_forward_path": "/Users/yanwengong/Documents/JingZhang_lab/snp_effect/data/test_rsync_local_v2/input_fasta/pos_forward.fa",
+  "encode_path": "/Users/yanwengong/Documents/JingZhang_lab/snp_effect/data/test_rsync_local_v2/input_fasta/encode_negative.fa",
+  "label_path": "/Users/yanwengong/Documents/JingZhang_lab/snp_effect/data/test_rsync_local_v2/input_fasta/label.txt",
+  "encode_n": 100000,
+  "model_name": "simple_DanQ",
+  "num_epochs": 50,
+  "batch_size": 256,
+  "learning_rate": 0.001,
+  "weight_decay": 0.001,
+  "weight_value": 2.2493868392214162,
+  "cell_cluster": [1],
+  "model_path": "/Users/yanwengong/Documents/JingZhang_lab/snp_effect/data/test_rsync_local_v2/output/0222_simpleDQ_fasta/model",
+  "output_evaluation_data_path": "/Users/yanwengong/Documents/JingZhang_lab/snp_effect/data/test_rsync_local_v2/output/0222_simpleDQ_fasta",
+  "subset": "True"
 }

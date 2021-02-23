@@ -1,73 +1,104 @@
 import numpy as np
+import torch
 from torch.utils.data import Dataset
 
 
 class Data(Dataset):
-    def __init__(self, x_data_path, y_data_path, cell_cluster, subset ="True"):
-        self.X = np.moveaxis(np.load(x_data_path),1,2)
-        self.y = np.load(y_data_path)[:, cell_cluster]
-        self._subset = subset
+    def __init__(self, data, label, cell_cluster, subset ="True"):
+        # (n,) array, each element is string, dtype=object
+        self.data = data # fasta of forward, no chr title, 1d np.array, shape is n
+        self.label = label[:, cell_cluster] # n x 8 label
 
-        if self._subset == "True":
-            print("subset dataset")
+        if subset == "True":
+            self._subset()
 
-            size = int(np.floor(self.X.shape[0] * 0.005))
-            np.random.seed(202101190)
-            X_index = np.random.choice(self.X.shape[0], size=size, replace=False)
-            np.random.seed(202101190)
-            y_index = np.random.choice(self.y.shape[0], size=size, replace=False)
+        # add reverse complement
+        temp = np.copy(self.data)
+        complement = {'A': 'T', 'T': 'A', 'G': 'C', 'C': 'G', 'N' : 'N'}
+        for seq in self.data:
+            complement_seq = ''
+            for base in seq: ## need to check here, what is seq's shape?? why do they have seq[0] here
+                complement_seq = complement[base] + complement_seq
 
-            self.X = self.X[X_index, :]
-            self.y = self.y[y_index, :]
+            complement_seq = np.array([complement_seq], dtype=object)
 
-        print("----------initial data shape--------------")
-        print(self.X.shape)
-        print(self.y.shape)
+        temp = np.append(temp, complement_seq, axis=0)
+
+        self.data = temp # shape should be (2n, ) here
+        self.label = np.append(self.label, self.label, axis=0) # shape should be 2n x 8
+        print("-----------------shape after init data loader-------------")
+        print(self.data.shape)
+        print(self.label.shape)
+        # if self.label.shape[1] == 1:
+        #     pos_count = np.count_nonzero(self.label)
+        #     neg_count = self.data.shape[0] - np.count_nonzero(self.label)
+        #     self.weight_value = neg_count/pos_count
+        #     print(f"calculated weight is {self.weight_value}")
 
 
     def __len__(self):
-        return self.X.shape[0]
+        return self.data.shape[0] ## check
 
     def __getitem__(self, index):
-        X = self.X[index]
-        y = self.y[index]
+        seq = self.data[index]
+        row_index = 0
+        temp = np.zeros((len(seq), 4))
+        for base in seq: ## seq[0]??
+            if base == 'A':
+                temp[row_index, 0] = 1
+            elif base == 'T':
+                temp[row_index, 1] = 1
+            elif base == 'G':
+                temp[row_index, 2] = 1
+            elif base == 'C':
+                temp[row_index, 3] = 1
+            row_index += 1
+
+        X = torch.tensor(temp).float().permute(1,0) # change the dim to 4, 1000
+        y = torch.tensor(self.label[index]).float()
 
         return X, y
 
+    def _subset(self):
+        size = int(np.floor(self.data.shape[0] * 0.005))
+        np.random.seed(202101190)
+        X_index = np.random.choice(self.data.shape[0], size=size, replace=False)
+        np.random.seed(202101190)
+        y_index = np.random.choice(self.label.shape[0], size=size, replace=False)
 
-    # def get_x(self):
-    #     X = np.load(self._x_data_path)
-    #     return X
-    #
-    # def get_y(self):
-    #     y = np.load(self._y_data_path)
+        self.data = self.data[X_index]
+        self.label = self.label[y_index, :]
 
-        # if self._subset == "True":
-        #     train_size = int(np.floor(len(indices_train) * 0.2))
-        #     test_size = int(np.floor(len(indices_test) * 0.2))
-        #     np.random.seed(202101190)
-        #     indices_train = np.random.choice(indices_train, size=(train_size,), replace=False)
-        #     np.random.seed(202101190)
-        #     indices_test = np.random.choice(indices_test, size=(test_size,), replace=False)
-        #     print("------------indices shape-------------")
-        #     print("subset")
-        #     print(indices_train.shape)
-        #     print(indices_test.shape)
-        #     print("------------indices shape-------------")
-        #     pass
 
-        # if self._exact_divide == "True":
-        #     # train_size = int(182272)
-        #     # test_size = int(45056)
-        #     # np.random.seed(20210131)
-        #     # indices_train = np.random.choice(indices_train, size=(train_size,), replace=False)
-        #     # np.random.seed(20210131)
-        #     # indices_test = np.random.choice(indices_test, size=(test_size,), replace=False)
-        #     # print("------------indices shape-------------")
-        #     # print("exact_divide")
-        #     # print(indices_train.shape)
-        #     # print(indices_test.shape)
-        #     # print("------------indices shape-------------")
-        #     pass
-        #
-        # return y
+
+# class Data(Dataset):
+#     def __init__(self, x_data_path, y_data_path, cell_cluster, subset ="True"):
+#         self.X = np.moveaxis(np.load(x_data_path),1,2)
+#         self.y = np.load(y_data_path)[:, cell_cluster]
+#         self._subset = subset
+#
+#         if self._subset == "True":
+#             print("subset dataset")
+#
+#             size = int(np.floor(self.X.shape[0] * 0.005))
+#             np.random.seed(202101190)
+#             X_index = np.random.choice(self.X.shape[0], size=size, replace=False)
+#             np.random.seed(202101190)
+#             y_index = np.random.choice(self.y.shape[0], size=size, replace=False)
+#
+#             self.X = self.X[X_index, :]
+#             self.y = self.y[y_index, :]
+#
+#         print("----------initial data shape--------------")
+#         print(self.X.shape)
+#         print(self.y.shape)
+#
+#
+#     def __len__(self):
+#         return self.X.shape[0]
+#
+#     def __getitem__(self, index):
+#         X = self.X[index]
+#         y = self.y[index]
+#
+#         return X, y
