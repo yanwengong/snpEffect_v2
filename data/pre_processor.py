@@ -44,3 +44,36 @@ class Processor():
 
 
 
+class ProcessorTrans():
+    def __init__(self, pos_forward_path, neg_forward_path):
+        self.pos_forward_path = pos_forward_path
+        self.neg_forward_path = neg_forward_path
+
+    def concate_data(self):
+        pos_fasta = pd.read_csv(self.pos_forward_path, sep=">chr*",
+                                header=None, engine='python').values[1::2][:, 0]  # (n,) array, each element is string, dtype=object
+        neg_fasta = pd.read_csv(self.neg_forward_path, sep=">chr*",
+                                header=None, engine='python').values[1::2][:, 0]
+
+        print("-----------finish pd read_csv------------")
+        data = np.concatenate([pos_fasta, neg_fasta])
+
+        n_pos = pos_fasta.shape[0]
+        n_neg = neg_fasta.shape[0]
+
+        pos_label = np.ones(n_pos)
+        neg_label = np.zeros(n_neg)
+
+        label = np.concatenate([pos_label, neg_label]).reshape((n_pos+n_neg), 1) # nx1
+
+        print("-----------shape right after concate------------")
+        print(data.shape)  # (214538,)
+        print(label.shape)  # (214538, 8)
+        return data, label
+
+    def split_train_test(self, data, label, test_size=0.2):
+        data_train, data_test, label_train, label_test = train_test_split(data, label, test_size=test_size,
+                                                                          random_state=12)
+        return data_train, data_test, label_train, label_test
+
+

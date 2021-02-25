@@ -1,7 +1,6 @@
 import argparse
 import torch
-from config.config import Config
-from data.pre_processor import Processor
+from data.pre_processor import Processor, ProcessorTrans
 from data.data_loader import Data
 from train.trainer import Trainer
 from evaluate.evaluator import Evaluator
@@ -11,11 +10,12 @@ import os
 
 if __name__ == '__main__':
     # 1\ Parses the command line arguments and returns as a simple namespace.
-    print("--------start------------")
 
     parser = argparse.ArgumentParser(description='main.py')
     parser.add_argument('-e', '--exe_mode', default='train', help='The execution mode.(train/test)')
     parser.add_argument('-c', '--config', default='./config/config_1.json', help='The config file of experiment.')
+    parser.add_argument('-s', '--step', default='transfer_learning', help='The step of model (transfer_learning/main)')
+
     args = parser.parse_args()
 
     # 2\ Configure the Check the Environment.
@@ -32,14 +32,18 @@ if __name__ == '__main__':
     # print('GPU count:{}, Memory growth:{}, Soft device placement:{} ...'.format(len(gpu_devices),True,True), flush=True)
 
     # 3\ Get the configer.
-    config = Utils.read_json(args.config)
+    config = Utils.read_json(args.config, args.step)
     if not os.path.exists(config.output_evaluation_data_path):
         os.makedirs(config.output_evaluation_data_path)
 
     # 4\ Load, process and split the data set
-    print("--------processor start------------")
-    processor = Processor(config.pos_forward_path, config.encode_path, config.label_path, config.encode_n)
-    data, label = processor.concate_data()
+
+    if args.step == "main":
+        processor = Processor(config.pos_forward_path, config.encode_path, config.label_path, config.encode_n)
+        data, label = processor.concate_data()
+    elif args.step == "transfer_learning":
+        processor = ProcessorTrans(config.pos_forward_path, config.neg_forward_path)
+        data, label = processor.concate_data()
     data_train, data_test, label_train, label_test = processor.split_train_test(data, label)
 
     # 4\ Selecting the execution mode.

@@ -32,31 +32,15 @@ class Trainer:
     def train(self):
         """ train """
 
-        # Create Tensors to hold input and outputs.
-        #x = self._data_loader.get_x()
-
-        #y = self._data_loader.get_y()
-
-        # Construct our model by instantiating the class defined above
-        # Construct our loss function and an Optimizer. Training this strange model with
-        # vanilla stochastic gradient descent is tough, so we use momentum
-
-
-        # num_epochs = 1
-        # batch_size = 512
-        # learning_rate = 0.001
-        # weight_decay = 0.001
-
         device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
         print(device)
         print(torch.cuda.device_count())
         model = self._model.to(device)
 
-
-        # TODO: read from json
-        #criterion = nn.BCELoss()
-        #weight = torch.tensor([1.0, 2.0, 1.0])
-        criterion = nn.BCELoss(weight = torch.tensor([self.weight])).to(device) ## for cluster 1(none dominant)
+        if self.weight == "NA":
+            criterion = nn.BCELoss().to(device)
+        else:
+            criterion = nn.BCELoss(weight = torch.tensor([self.weight])).to(device) ## for cluster 1(none dominant)
         optimizer = torch.optim.Adam(model.parameters(), lr=self._learning_rate, weight_decay=self._weight_decay)
         train_loader = torch.utils.data.DataLoader(self.train_data, batch_size=self._batch_size, shuffle=True)
 
@@ -64,6 +48,7 @@ class Trainer:
             for i, (X, y) in enumerate(train_loader):
                 X = X.to(device)
                 y = y.to(device)
+                model.train() # set to train mode, use dropout and batchnorm
                 # Forward pass: Compute predicted y by passing x to the model
                 y_pred = model(X.float())
 
@@ -77,8 +62,6 @@ class Trainer:
                 optimizer.step()
             if epoch % 1 == 0:
                 print(epoch, loss.item())
-
-        #print(f'Result: {model}')
 
         # end
         torch.save(model, self._model_path)

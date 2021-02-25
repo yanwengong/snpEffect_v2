@@ -7,7 +7,7 @@ class Data(Dataset):
     def __init__(self, data, label, cell_cluster, subset ="True"):
         # (n,) array, each element is string, dtype=object
         self.data = data # fasta of forward, no chr title, 1d np.array, shape is n
-        self.label = label[:, cell_cluster] # n x 8 label
+        self.label = label[:, cell_cluster]
 
         if subset == "True":
             self._subset()
@@ -68,37 +68,3 @@ class Data(Dataset):
 
         self.data = self.data[X_index]
         self.label = self.label[y_index, :]
-
-
-
-# class Data(Dataset):
-#     def __init__(self, x_data_path, y_data_path, cell_cluster, subset ="True"):
-#         self.X = np.moveaxis(np.load(x_data_path),1,2)
-#         self.y = np.load(y_data_path)[:, cell_cluster]
-#         self._subset = subset
-#
-#         if self._subset == "True":
-#             print("subset dataset")
-#
-#             size = int(np.floor(self.X.shape[0] * 0.005))
-#             np.random.seed(202101190)
-#             X_index = np.random.choice(self.X.shape[0], size=size, replace=False)
-#             np.random.seed(202101190)
-#             y_index = np.random.choice(self.y.shape[0], size=size, replace=False)
-#
-#             self.X = self.X[X_index, :]
-#             self.y = self.y[y_index, :]
-#
-#         print("----------initial data shape--------------")
-#         print(self.X.shape)
-#         print(self.y.shape)
-#
-#
-#     def __len__(self):
-#         return self.X.shape[0]
-#
-#     def __getitem__(self, index):
-#         X = self.X[index]
-#         y = self.y[index]
-#
-#         return X, y

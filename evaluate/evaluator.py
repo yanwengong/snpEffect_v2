@@ -30,7 +30,6 @@ class Evaluator:
     def _predict(self, data_loader):
         self._mode.eval()
         device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-        #sm = torch.nn.functional.softmax()
         with torch.no_grad():
 
             y_arr = np.empty((0, self.n_class))
@@ -38,36 +37,14 @@ class Evaluator:
 
             for X, y in data_loader:
                 X = X.to(device)
-                #images = torch.reshape(images, (images.shape[0], images.shape[2], images.shape[1]))
                 y = y.to(device)
                 outputs = self._mode(X.float())
-                #print(torch.max(outputs.data, 1))
 
-                ##0206
-                #y_hat = sm(outputs, dim=1) # TODO: to check why keras compute prob when predict
-                #y_hat, top_class = prob.topk(1, dim=1) ## this is to return the top 1 value and index
-                ##0206
-
-                #print('outputs', outputs.shape, y_hat)
-                #_, pred = torch.max(outputs.data, 1)
-                #print(_)
-                #print(pred)
-
-                ## original
-                #y_hat = torch.round(outputs)
-                ## original
                 y_hat = outputs
                 y = y.float()
-                #y.extend(y.tolist())
 
                 y_arr = np.concatenate((y_arr, y.cpu().numpy()))
-
-                ## original
                 y_hat_arr = np.concatenate((y_hat_arr, y_hat.cpu().numpy()))
-                ## original
-
-                #y_hat_arr.append(y_hat.reshape(-1).tolist())
-                #y_hat_arr = np.concatenate((y_hat_arr, pred.cpu().numpy()))
 
             print("------------------ evaluation shape --------------------")
             print(y_arr.shape)
@@ -111,7 +88,6 @@ class Evaluator:
 
 
 
-
     def evaluate(self):
         device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
@@ -120,10 +96,6 @@ class Evaluator:
 
         y_train, y_train_hat = self._predict(train_loader)
         y_test, y_test_hat = self._predict(test_loader)
-
-        #y_train_pred2, y_train2, y_train_prob2 = self._predict2(train_loader)
-        #y_test_pred2, y_test2, y_test_prob2 = self._predict2(test_loader)
-
 
         # calculate and save overall performance metrics
         perf_metrics = self.get_overall_performance_metrics(
@@ -136,7 +108,6 @@ class Evaluator:
 
         print("overall metrics calculation done")
 
-        # plot_name = "".join(["roc", ".pdf"])
         # plot overall roc
         self.plot_overall_roc(
             y_train, y_train_hat,
@@ -163,12 +134,6 @@ class Evaluator:
             individual_y_train_hat = y_train_hat[:, i]
             individual_y_test = y_test[:, i]
             individual_y_test_hat = y_test_hat[:, i]
-            # print("~~~~~~~~~~~~~~~~~~~~~~~")
-            # print(y_train.shape)
-            # print(y_train_hat.shape)
-            # print(y_test.shape)
-            # print(y_test_hat.shape)
-            # print("~~~~~~~~~~~~~~~~~~~~~~~~")
 
             perf_metrics = self.get_individual_performance_metrics(
                 individual_y_train, individual_y_train_hat,
