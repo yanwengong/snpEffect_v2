@@ -38,9 +38,11 @@ class Processor():
 
         return data, label
 
-    def split_train_test(self, data, label, test_size = 0.2):
-        data_train, data_test, label_train, label_test = train_test_split(data, label, test_size=test_size, random_state=12)
-        return data_train, data_test, label_train, label_test
+    def split_train_test(self, data, label, test_size = 0.1):
+        data_train_temp, data_test, label_train_temp, label_test = train_test_split(data, label, test_size=test_size, random_state=12)
+        data_train, data_eval, label_train, label_eval = train_test_split(data_train_temp, label_train_temp, test_size=test_size, random_state=12)
+
+        return data_train, data_eval, data_test, label_train, label_eval, label_test
 
 
 
@@ -71,9 +73,10 @@ class ProcessorTrans():
         print(label.shape)  # (214538, 8)
         return data, label
 
-    def split_train_test(self, data, label, test_size=0.2):
-        data_train, data_test, label_train, label_test = train_test_split(data, label, test_size=test_size,
-                                                                          random_state=12)
-        return data_train, data_test, label_train, label_test
+    def split_train_test(self, data, label, test_size = 0.1):
+        data_train_temp, data_test, label_train_temp, label_test = train_test_split(data, label, test_size=test_size, random_state=12)
+        data_train, data_eval, label_train, label_eval = train_test_split(data_train_temp, label_train_temp, test_size=test_size, random_state=12)
+
+        return data_train, data_eval, data_test, label_train, label_eval, label_test
 
 

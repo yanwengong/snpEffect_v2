@@ -44,23 +44,19 @@ if __name__ == '__main__':
     elif args.step == "transfer_learning":
         processor = ProcessorTrans(config.pos_forward_path, config.neg_forward_path)
         data, label = processor.concate_data()
-    data_train, data_test, label_train, label_test = processor.split_train_test(data, label)
+    data_train, data_eval, data_test, label_train, label_eval, label_test = processor.split_train_test(data, label)
 
     # 4\ Selecting the execution mode.
     if args.exe_mode == 'train':
         print("--------loader start------------")
         train_data_loader = Data(data_train, label_train, config.cell_cluster, config.subset)
+        eval_data_loader = Data(data_eval, label_eval, config.cell_cluster, config.subset)
 
-        # train_data_loader = Data(
-        #     config.X_train_data_path,
-        #     config.y_train_data_path,
-        #     config.cell_cluster,
-        #     config.subset)
         print("--------loader finish------------")
 
-        trainer = Trainer(config.get_model(), train_data_loader, config.model_path,
+        trainer = Trainer(config.get_model(), train_data_loader, eval_data_loader, config.model_path,
                           config.num_epochs, config.batch_size, config.learning_rate,
-                          config.weight_decay, config.weight_value)
+                          config.weight_decay, config.weight_value, config.output_evaluation_data_path)
         print("train start time: ", datetime.now())
         trainer.train() # include save model to destination
         print("train end time: ", datetime.now())
@@ -68,22 +64,12 @@ if __name__ == '__main__':
     elif args.exe_mode == 'test':
         train_data_loader = Data(data_train, label_train, config.cell_cluster, config.subset)
 
-        # train_data_loader = Data(
-        #     config.X_train_data_path,
-        #     config.y_train_data_path,
-        #     config.cell_cluster,
-        #     config.subset)
         print("----------train data loader done--------")
         test_data_loader = Data(data_test, label_test, config.cell_cluster, config.subset)
 
-        # test_data_loader = Data(
-        #     config.X_test_data_path,
-        #     config.y_test_data_path,
-        #     config.cell_cluster,
-        #     config.subset)
         print("----------test data loader done--------")
 
-        evaluator = Evaluator(train_data_loader, test_data_loader, config.model_path,
+        evaluator = Evaluator(config.get_model(), train_data_loader, test_data_loader, config.model_path,
                               config.output_evaluation_data_path, config.batch_size,
                               config.n_class)
         evaluator.evaluate()

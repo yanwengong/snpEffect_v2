@@ -1,0 +1,14 @@
+{
+  "pos_forward_path": "/home/yanweng/snp_effect/data/for_model_v2/input_trans/encode_complete_yg.fa",
+  "neg_forward_path": "/home/yanweng/snp_effect/data/for_model_v2/input_trans/univeral_negative_yg.fa",
+  "model_name": "DanQ",
+  "num_epochs": 50,
+  "batch_size": 256,
+  "learning_rate": 0.001,
+  "weight_decay": 0.001,
+  "weight_value": "NA",
+  "cell_cluster": [0],
+  "model_path": "/home/yanweng/snp_effect/data/for_model_v2/output_trans/0228_DanQ_yg/model.pt",
+  "output_evaluation_data_path": "/home/yanweng/snp_effect/data/for_model_v2/output_trans/0228_DanQ_yg",
+  "subset": "False"
+}

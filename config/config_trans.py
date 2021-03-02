@@ -1,4 +1,4 @@
-from model.danq import DanQ, simple_DanQ
+from model.danq import DanQ, simple_DanQ, Complex_DanQ
 
 
 class ConfigTrans():
@@ -115,8 +115,13 @@ class ConfigTrans():
     # TODO: move this part out to model folder as a new model registration class
     def get_model(self):
         if self._model_name == "DanQ":
+            print("--------MODEL: DanQ-------")
             return DanQ(self.n_class)
         elif self._model_name == "simple_DanQ":
+            print("--------MODEL: simple_DanQ-------")
             return simple_DanQ(self.n_class )
+        elif self._model_name == "complex_DanQ":
+            print("--------MODEL: comples_DanQ-------")
+            return Complex_DanQ(self.n_class )
         else:
             return

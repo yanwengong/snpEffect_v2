@@ -60,7 +60,7 @@ class Data(Dataset):
         return X, y
 
     def _subset(self):
-        size = int(np.floor(self.data.shape[0] * 0.005))
+        size = int(np.floor(self.data.shape[0] * 0.0002))
         np.random.seed(202101190)
         X_index = np.random.choice(self.data.shape[0], size=size, replace=False)
         np.random.seed(202101190)

@@ -1,4 +1,4 @@
-from model.danq import DanQ, simple_DanQ
+from model.danq import DanQ, simple_DanQ, Complex_DanQ
 
 
 class Config():
@@ -122,5 +122,8 @@ class Config():
             return DanQ(self.n_class)
         elif self._model_name == "simple_DanQ":
             return simple_DanQ(self.n_class )
+        elif self._model_name == "complex_DanQ":
+            print("complex_DanQ model")
+            return Complex_DanQ(self.n_class )
         else:
             return

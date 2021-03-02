@@ -1,0 +1,14 @@
+{
+  "pos_forward_path": "/pub/yanweng/zhang/snp_effect/data/transfer_learning/input/encode_complete.fa",
+  "neg_forward_path": "/pub/yanweng/zhang/snp_effect/data/transfer_learning/input/univeral_negative.fa",
+  "model_name": "complex_DanQ",
+  "num_epochs": 50,
+  "batch_size": 256,
+  "learning_rate": 0.001,
+  "weight_decay": 0.001,
+  "weight_value": "NA",
+  "cell_cluster": [0],
+  "model_path": "/pub/yanweng/zhang/snp_effect/data/transfer_learning/output/0225_complex_DanQ/model",
+  "output_evaluation_data_path": "/pub/yanweng/zhang/snp_effect/data/transfer_learning/output/0225_complex_DanQ",
+  "subset": "False"
+}
