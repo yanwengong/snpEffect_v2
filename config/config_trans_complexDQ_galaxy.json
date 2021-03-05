@@ -1,14 +1,15 @@
 {
-  "pos_forward_path": "/home/yanweng/snp_effect/data/for_model_v2/input_trans/encode_complete_yg.fa",
-  "neg_forward_path": "/home/yanweng/snp_effect/data/for_model_v2/input_trans/univeral_negative_yg.fa",
+  "pos_forward_path": "/home/yanweng/snp_effect/data/for_model_v2/input_trans_idr_threshold/encode_complete_yg.fa",
+  "neg_forward_path": "/home/yanweng/snp_effect/data/for_model_v2/input_trans_idr_threshold/univeral_negative_yg.fa",
   "model_name": "complex_DanQ",
-  "num_epochs": 50,
+  "num_epochs": 15,
   "batch_size": 256,
-  "learning_rate": 0.001,
+  "learning_rate": 0.0001,
   "weight_decay": 0,
   "weight_value": "NA",
   "cell_cluster": [0],
-  "model_path": "/home/yanweng/snp_effect/data/for_model_v2/output_trans/0301_complexDQ_weightdecay0/model.pt",
-  "output_evaluation_data_path": "/home/yanweng/snp_effect/data/for_model_v2/output_trans/0301_complexDQ_weightdecay0",
-  "subset": "False"
+  "model_path": "/home/yanweng/snp_effect/data/for_model_v2/output_trans/0305_complex_DanQ_balance_idr_lr0.0001/model.pt",
+  "output_evaluation_data_path": "/home/yanweng/snp_effect/data/for_model_v2/output_trans/0305_complex_DanQ_balance_idr_lr0.0001",
+  "subset": "False",
+  "balance": "True"
 }

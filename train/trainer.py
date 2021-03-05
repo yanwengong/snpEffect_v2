@@ -4,6 +4,7 @@ from tqdm import tqdm
 import copy
 import matplotlib.pyplot as plt
 import os
+import numpy as np
 
 class Trainer:
     def __init__(self, model, train_data, eval_data, model_path, num_epochs, batch_size,
@@ -46,6 +47,14 @@ class Trainer:
         train_acc_hist = []
         eval_acc_hist = []
 
+        with open(os.path.join(self.plot_path, "train_vali_record.txt"), 'w') as file:
+            file.write("Epoch \t Data \t Loss \t Acc \n")
+            file.close()
+
+        # with open(os.path.join(self.plot_path, "vali_record.txt"), 'w') as file:
+        #     file.write("Epoch \t Loss \t Acc \n")
+        #     file.close()
+
         best_model_wts = copy.deepcopy(model.state_dict())
         best_acc = 0.0
 
@@ -57,6 +66,8 @@ class Trainer:
         optimizer = torch.optim.Adam(model.parameters(), lr=self._learning_rate, weight_decay=self._weight_decay)
         train_loader = torch.utils.data.DataLoader(self.train_data, batch_size=self._batch_size, shuffle=True)
         eval_loader = torch.utils.data.DataLoader(self.eval_data, batch_size=self._batch_size, shuffle=True)
+
+        #model.apply(self._weights_init_uniform_rule) # TODO Uniform Initialization added on 0303
 
         for epoch in range(self._num_epochs):
             print('Epoch {}/{}'.format(epoch, self._num_epochs - 1))
@@ -75,38 +86,39 @@ class Trainer:
 
                 # Forward pass: Compute predicted y by passing x to the model
                 y_pred_prob = model(X.float()) # predicted value
-                #print("y_pred_prob")
-                #print(y_pred_prob)
                 #_, preds = torch.max(y_pred, 1) # TODO understand this line
 
                 # Compute and print loss
                 loss = criterion(y_pred_prob.float(), y.float())
-                #print("loss.item")
-                #print(loss.item())
 
                 # Backward and optimize
                 # Zero gradients, perform a backward pass, and update the weights.
-                optimizer.zero_grad() # TODO: check the position of this func
+                optimizer.zero_grad() # clears old gradients from the last step
                 loss.backward() # for each parameter, calculate d(loss)/d(weight)
-                optimizer.step() # update weights
+                optimizer.step() # update weights, causes the optimizer to take a step based on the gradients of the parameters
 
                 # statistics
                 y_pred = (y_pred_prob > 0.5).float()  ## 0/1
-                #print("y_pred and y")
-                #print(y_pred)
-                #print(y)
                 train_loss += loss.item() * X.size(0) #loss.item() has be reducted by batch size
-                #print("------train loss accumulated----")
-                #print(train_loss)
+
                 train_acc += torch.sum(y_pred == y)
-                #running_corrects += torch.sum(preds == y.float())
+
             if epoch % 1 == 0:
                 train_loss = train_loss/len(train_loader.dataset)
                 train_acc = train_acc.double() / len(train_loader.dataset)
                 print('Epoch {} {} Loss: {:.4f} Acc: {:.4f}'.format(epoch, 'train', train_loss, train_acc))
 
+                with open(os.path.join(self.plot_path, "train_vali_record.txt"), 'a') as file:
+                    file.write("{} \t {} \t {:.4f} \t {:.4f} \n".format(epoch, 'train', train_loss, train_acc))
+                    file.close()
+
+
+
             train_loss_hist.append(train_loss)
             train_acc_hist.append(train_acc)
+
+
+
             # Evaluation
             eval_loss = 0
             eval_acc = 0
@@ -129,6 +141,9 @@ class Trainer:
                 eval_acc = eval_acc.double() / len(eval_loader.dataset)
 
                 print('{} Loss: {:.4f} Acc: {:.4f}'.format("validation", eval_loss, eval_acc))
+                with open(os.path.join(self.plot_path, "train_vali_record.txt"), 'a') as file:
+                    file.write("{} \t {} \t{:.4f} \t {:.4f} \n".format(epoch, 'validation', eval_loss, eval_acc))
+                    file.close()
 
             eval_loss_hist.append(eval_loss)
             eval_acc_hist.append(eval_acc)
@@ -158,5 +173,15 @@ class Trainer:
         plt.xlabel('epoch')
         plt.legend(loc='upper left')
         plt.savefig(os.path.join(self.plot_path, plot_name))
+
+    def _weights_init_uniform_rule(self, m):
+        classname = m.__class__.__name__
+        # for every Linear layer in a model..
+        if classname.find('Linear') != -1:
+            # get the number of the inputs
+            n = m.in_features
+            y = 1.0 / np.sqrt(n)
+            m.weight.data.uniform_(-y, y)
+            m.bias.data.fill_(0)
 
 

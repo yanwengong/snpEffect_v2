@@ -42,7 +42,7 @@ if __name__ == '__main__':
         processor = Processor(config.pos_forward_path, config.encode_path, config.label_path, config.encode_n)
         data, label = processor.concate_data()
     elif args.step == "transfer_learning":
-        processor = ProcessorTrans(config.pos_forward_path, config.neg_forward_path)
+        processor = ProcessorTrans(config.pos_forward_path, config.neg_forward_path, config.balance)
         data, label = processor.concate_data()
     data_train, data_eval, data_test, label_train, label_eval, label_test = processor.split_train_test(data, label)
 

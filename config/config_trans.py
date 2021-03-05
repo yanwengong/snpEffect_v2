@@ -1,5 +1,5 @@
 from model.danq import DanQ, simple_DanQ, Complex_DanQ
-
+from model.sai import Net
 
 class ConfigTrans():
 
@@ -19,6 +19,7 @@ class ConfigTrans():
                  model_path,
                  output_evaluation_data_path,
                  subset,
+                 balance,
                  cell_cluster):
 
         # self.pos_forward_path = pos_forward_path
@@ -37,6 +38,7 @@ class ConfigTrans():
         self._output_evaluation_data_path = output_evaluation_data_path
         self._subset = subset
         self._cell_cluster = cell_cluster
+        self._balance = balance
         self._n_class = len(cell_cluster)
 
     @property
@@ -100,6 +102,10 @@ class ConfigTrans():
         return self._subset
 
     @property
+    def balance(self):
+        return self._balance
+
+    @property
     def cell_cluster(self):
         return self._cell_cluster
 
@@ -119,9 +125,13 @@ class ConfigTrans():
             return DanQ(self.n_class)
         elif self._model_name == "simple_DanQ":
             print("--------MODEL: simple_DanQ-------")
-            return simple_DanQ(self.n_class )
+            return simple_DanQ(self.n_class)
         elif self._model_name == "complex_DanQ":
             print("--------MODEL: comples_DanQ-------")
-            return Complex_DanQ(self.n_class )
+            return Complex_DanQ(self.n_class)
+        elif self._model_name == "Sai":
+            print("--------MODEL: Net-------")
+            return Net()
         else:
+            print("--------No Model Retrieved!-------")
             return

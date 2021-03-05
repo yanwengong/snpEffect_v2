@@ -1,31 +1,39 @@
 import numpy as np
 import torch
 from torch.utils.data import Dataset
-
+from datetime import datetime
 
 class Data(Dataset):
     def __init__(self, data, label, cell_cluster, subset ="True"):
         # (n,) array, each element is string, dtype=object
         self.data = data # fasta of forward, no chr title, 1d np.array, shape is n
-        self.label = label[:, cell_cluster]
+        #self.label = label[:, cell_cluster] TODO commented on 03/03
+        self.label = label
+        print("-----------------shape before add RC -------------")
+        print(self.data.shape)
+        print(self.label.shape)
 
         if subset == "True":
             self._subset()
+        print("-----------------shape after subset -------------")
+        print(self.data.shape)
+        print(self.label.shape)
 
         # add reverse complement
-        temp = np.copy(self.data)
+        temp = []
         complement = {'A': 'T', 'T': 'A', 'G': 'C', 'C': 'G', 'N' : 'N'}
+        print("reverse complement start time: ", datetime.now())
         for seq in self.data:
             complement_seq = ''
             for base in seq: ## need to check here, what is seq's shape?? why do they have seq[0] here
                 complement_seq = complement[base] + complement_seq
 
-            complement_seq = np.array([complement_seq], dtype=object)
+            temp.append(complement_seq)# 0301 indented, TODO: check why before it could still train, even x and y have different n
 
-        temp = np.append(temp, complement_seq, axis=0)
-
-        self.data = temp # shape should be (2n, ) here
-        self.label = np.append(self.label, self.label, axis=0) # shape should be 2n x 8
+        print("reverse complement end time: ", datetime.now())
+        temp = np.array(temp, dtype=object)
+        self.data = np.append(self.data, temp, axis=0)
+        self.label = np.append(self.label, self.label, axis=0)
         print("-----------------shape after init data loader-------------")
         print(self.data.shape)
         print(self.label.shape)
@@ -60,7 +68,7 @@ class Data(Dataset):
         return X, y
 
     def _subset(self):
-        size = int(np.floor(self.data.shape[0] * 0.0002))
+        size = int(np.floor(self.data.shape[0] * 0.1))
         np.random.seed(202101190)
         X_index = np.random.choice(self.data.shape[0], size=size, replace=False)
         np.random.seed(202101190)

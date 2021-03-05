@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 import os
-from sklearn.metrics import precision_score, accuracy_score, recall_score, f1_score, roc_auc_score
+from sklearn.metrics import precision_score, accuracy_score, recall_score, f1_score, roc_auc_score, average_precision_score
 from sklearn.metrics import roc_curve, auc
 import matplotlib.pyplot as plt
 import numpy as np
@@ -59,9 +59,6 @@ class Evaluator:
             for X, y in tqdm(data_loader):
                 X = X.to(device)
                 y = y.to(device)
-                # print("--------print x to device y to device--------")
-                # print(X.type)
-                # print(y.type)
                 outputs = self._mode(X.float())
 
                 y_hat = outputs
@@ -109,8 +106,9 @@ class Evaluator:
         plt.savefig(os.path.join(plot_path, plot_name))
 
     def _get_performance_metrics(self, y_train, p_train_pred, y_test, p_test_pred, output_path, threshold=0.5):
-        metric_names = ['AUC', 'Accuracy', 'Precision', 'Recall', 'f1-score']
+        metric_names = ['AUC', 'AUPRC', 'Accuracy', 'Precision', 'Recall', 'f1-score']
         metric_values_train = [roc_auc_score(y_train, p_train_pred),
+                               average_precision_score(y_train, p_train_pred),
                                accuracy_score(y_train, p_train_pred > threshold),
                                precision_score(y_train, p_train_pred > threshold),
                                recall_score(y_train, p_train_pred > threshold),
@@ -118,6 +116,7 @@ class Evaluator:
                                ]
         metric_values_train = np.array(metric_values_train).round(3)
         metric_values_test = [roc_auc_score(y_test, p_test_pred),
+                              average_precision_score(y_test, p_test_pred),
                               accuracy_score(y_test, p_test_pred > threshold),
                               precision_score(y_test, p_test_pred > threshold),
                               recall_score(y_test, p_test_pred > threshold),

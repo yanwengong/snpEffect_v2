@@ -47,9 +47,10 @@ class Processor():
 
 
 class ProcessorTrans():
-    def __init__(self, pos_forward_path, neg_forward_path):
+    def __init__(self, pos_forward_path, neg_forward_path, balance):
         self.pos_forward_path = pos_forward_path
         self.neg_forward_path = neg_forward_path
+        self.balance = balance
 
     def concate_data(self):
         pos_fasta = pd.read_csv(self.pos_forward_path, sep=">chr*",
@@ -58,6 +59,13 @@ class ProcessorTrans():
                                 header=None, engine='python').values[1::2][:, 0]
 
         print("-----------finish pd read_csv------------")
+
+        if self.balance == "True":
+            pos_fasta, neg_fasta = self._balance(pos_fasta, neg_fasta)
+
+        print("-----------positve/negative ratio------------")
+        print(pos_fasta.shape[0]/neg_fasta.shape[0])
+
         data = np.concatenate([pos_fasta, neg_fasta])
 
         n_pos = pos_fasta.shape[0]
@@ -68,9 +76,9 @@ class ProcessorTrans():
 
         label = np.concatenate([pos_label, neg_label]).reshape((n_pos+n_neg), 1) # nx1
 
-        print("-----------shape right after concate------------")
-        print(data.shape)  # (214538,)
-        print(label.shape)  # (214538, 8)
+        print("-----------shape right after join pos and neg fasta------------")
+        print(data.shape)  # (1681932,)
+        print(label.shape)  # (1681932, 1)
         return data, label
 
     def split_train_test(self, data, label, test_size = 0.1):
@@ -79,4 +87,21 @@ class ProcessorTrans():
 
         return data_train, data_eval, data_test, label_train, label_eval, label_test
 
+    def _balance(self, pos, neg):
+        pos_size = pos.shape[0]
+        neg_size = neg.shape[0]
 
+        if pos_size > neg_size:
+            ratio = neg_size/pos_size
+            size = int(np.floor(pos.shape[0] * ratio))
+            np.random.seed(202101190)
+            index = np.random.choice(pos.shape[0], size=size, replace=False)
+            pos = pos[index]
+        else:
+            ratio = pos_size / neg_size
+            size = int(np.floor(neg.shape[0] * ratio))
+            np.random.seed(202101190)
+            index = np.random.choice(neg.shape[0], size=size, replace=False)
+            neg = neg[index]
+
+        return pos, neg
