@@ -8,8 +8,8 @@
   "weight_decay": 0.001,
   "weight_value": "NA",
   "cell_cluster": [0],
-  "model_path": "/home/yanweng/snp_effect/data/for_model_v2/output_trans/0310_Simple_DanQ_noLSTM_sub0.1/model.pt",
-  "output_evaluation_data_path": "/home/yanweng/snp_effect/data/for_model_v2/output_trans/0310_Simple_DanQ_noLSTM_sub0.1",
+  "model_path": "/home/yanweng/snp_effect/data/for_model_v2_copy/output_trans/0309_Simple_DanQ_noLSTM_sub0.1/model.pt",
+  "output_evaluation_data_path": "/home/yanweng/snp_effect/data/for_model_v2_copy/output_trans/0309_Simple_DanQ_noLSTM_sub0.1",
   "subset": "True",
   "balance": "True"
 }

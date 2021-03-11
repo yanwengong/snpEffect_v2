@@ -1,5 +1,8 @@
-from model.danq import DanQ, simple_DanQ, Complex_DanQ
+from model.danq import DanQ, Simple_DanQ, Complex_DanQ, Simple_DanQ_noLSTM
 from model.sai import Net
+from model.conv_only import DeepSea
+from model.chvon import Chvon, Chvon2
+from model.deepatt import DeepATT
 
 class ConfigTrans():
 
@@ -117,21 +120,45 @@ class ConfigTrans():
     # def subset(self, subset):
     #     self._subset = subset
 
-
     # TODO: move this part out to model folder as a new model registration class
     def get_model(self):
         if self._model_name == "DanQ":
             print("--------MODEL: DanQ-------")
             return DanQ(self.n_class)
+
         elif self._model_name == "simple_DanQ":
             print("--------MODEL: simple_DanQ-------")
-            return simple_DanQ(self.n_class)
+            return Simple_DanQ(self.n_class)
+
         elif self._model_name == "complex_DanQ":
-            print("--------MODEL: comples_DanQ-------")
+            print("--------MODEL: complex_DanQ-------")
             return Complex_DanQ(self.n_class)
+
+        elif self._model_name == "Simple_DanQ_noLSTM":
+            print("--------MODEL: Simple_DanQ_noLSTM-------")
+            return Simple_DanQ_noLSTM(self.n_class)
+
         elif self._model_name == "Sai":
             print("--------MODEL: Net-------")
             return Net()
+
+        elif self._model_name == "DeepSea":
+            print("--------MODEL: DeepSea-------")
+            return DeepSea()
+
+        elif self._model_name == "Chvon":
+            print("--------MODEL: Chvon-------")
+            return Chvon()
+
+        elif self._model_name == "Chvon2":
+            print("--------MODEL: Chvon2-------")
+            return Chvon2()
+
+        elif self._model_name == "DeepATT":
+            print("--------MODEL: DeepATT-------")
+            return DeepATT()
+
+
         else:
             print("--------No Model Retrieved!-------")
             return

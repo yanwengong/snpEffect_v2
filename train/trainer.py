@@ -5,6 +5,9 @@ import copy
 import matplotlib.pyplot as plt
 import os
 import numpy as np
+from model.danq import DanQ, Simple_DanQ, Complex_DanQ, Simple_DanQ_noLSTM
+from model.sai import Net
+from model.conv_only import DeepSea
 
 class Trainer:
     def __init__(self, model, train_data, eval_data, model_path, num_epochs, batch_size,
@@ -39,7 +42,12 @@ class Trainer:
         """ train """
 
         device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-        model = self._model.to(device)
+        model = self._model.to(device) # TODO modified 03/09
+        model.to(device)
+        # seed = 1
+        # torch.cuda.manual_seed(seed)
+
+        #model.apply(self._weights_init_uniform_rule) # TODO Uniform Initialization added on 03/03
 
         train_loss_hist = []
         eval_loss_hist = []
@@ -61,23 +69,30 @@ class Trainer:
         if self.weight == "NA":
             criterion = nn.BCELoss().to(device)
         else:
-            criterion = nn.BCELoss(weight = torch.tensor([self.weight])).to(device) ## for cluster 1(none dominant)
+            criterion = nn.BCELoss(weight=torch.tensor([self.weight])).to(device) ## for cluster 1(none dominant)
 
         optimizer = torch.optim.Adam(model.parameters(), lr=self._learning_rate, weight_decay=self._weight_decay)
         train_loader = torch.utils.data.DataLoader(self.train_data, batch_size=self._batch_size, shuffle=True)
         eval_loader = torch.utils.data.DataLoader(self.eval_data, batch_size=self._batch_size, shuffle=True)
-
-        #model.apply(self._weights_init_uniform_rule) # TODO Uniform Initialization added on 0303
 
         for epoch in range(self._num_epochs):
             print('Epoch {}/{}'.format(epoch, self._num_epochs - 1))
             print('-' * 10)
 
             # Train
-
             train_loss = 0.0
             train_acc = 0.0
+
             model.train()  # set to train mode, use dropout and batchnorm ##
+
+            # for param in model.parameters():
+            #     print(param.data)
+
+            # with open(os.path.join(self.plot_path, "weight.txt"), 'w') as file:
+            #     for param in model.parameters():
+            #         file.write(param.data.detach().cpu().numpy())
+            #     file.close()
+            #np.savetxt(os.path.join(self.plot_path, str(epoch)+"weight.txt"), model.parameters().data.detach().cpu().np())
 
             for X, y in tqdm(train_loader):
 
@@ -91,11 +106,20 @@ class Trainer:
                 # Compute and print loss
                 loss = criterion(y_pred_prob.float(), y.float())
 
+                # a = list(model.parameters())[0].clone()# TODO modified 03/09, check the weight change before and after loss update
                 # Backward and optimize
                 # Zero gradients, perform a backward pass, and update the weights.
                 optimizer.zero_grad() # clears old gradients from the last step
                 loss.backward() # for each parameter, calculate d(loss)/d(weight)
                 optimizer.step() # update weights, causes the optimizer to take a step based on the gradients of the parameters
+
+                # b = list(model.parameters())[0].clone()
+                # print("---------------check parameter update----------")
+                # print(torch.equal(a.data, b.data)) # True, backpropogation is not happening
+                # print("------------check first layer-------------")
+                # print(list(model.parameters())[0].grad[0]) ## contain gradient of the the first layer, Got matrix of all 0
+                # print("------------check last layer-------------")
+                # print(list(model.parameters())[-1].grad[0])
 
                 # statistics
                 y_pred = (y_pred_prob > 0.5).float()  ## 0/1
@@ -112,12 +136,8 @@ class Trainer:
                     file.write("{} \t {} \t {:.4f} \t {:.4f} \n".format(epoch, 'train', train_loss, train_acc))
                     file.close()
 
-
-
             train_loss_hist.append(train_loss)
             train_acc_hist.append(train_acc)
-
-
 
             # Evaluation
             eval_loss = 0
@@ -154,9 +174,10 @@ class Trainer:
 
 
         # load best model weights
-        model.load_state_dict(best_model_wts)
+        # model.load_state_dict(best_model_wts)
 
-        torch.save(model.state_dict(), self._model_path)
+        # torch.save(model.state_dict(), self._model_path) # TODO modified 03/09
+        torch.save(best_model_wts, self._model_path)
         self._plot_metrics(train_loss_hist, eval_loss_hist, "loss_history.pdf")
         self._plot_metrics(train_acc_hist, eval_acc_hist, "acc_history.pdf")
 
@@ -175,13 +196,20 @@ class Trainer:
         plt.savefig(os.path.join(self.plot_path, plot_name))
 
     def _weights_init_uniform_rule(self, m):
+
         classname = m.__class__.__name__
+        if classname.find('Conv') != -1:
+            print("Conv")
+            nn.init.xavier_uniform_(m.weight.data)
         # for every Linear layer in a model..
-        if classname.find('Linear') != -1:
+        elif classname.find('Linear') != -1:
+            print("linear")
             # get the number of the inputs
-            n = m.in_features
-            y = 1.0 / np.sqrt(n)
-            m.weight.data.uniform_(-y, y)
+            #n = m.in_features
+            #y = 1.0 / np.sqrt(n)
+            #m.weight.data.uniform_(-y, y)
+
+            m.weight.data.fill_(0.01)
             m.bias.data.fill_(0)
 
 

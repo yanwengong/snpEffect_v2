@@ -59,11 +59,16 @@ class ProcessorTrans():
                                 header=None, engine='python').values[1::2][:, 0]
 
         print("-----------finish pd read_csv------------")
+        print("-----------original shape------------")
+        print("positive")
+        print(pos_fasta.shape)
+        print("negative")
+        print(neg_fasta.shape)
 
         if self.balance == "True":
             pos_fasta, neg_fasta = self._balance(pos_fasta, neg_fasta)
 
-        print("-----------positve/negative ratio------------")
+        print("-----------positve/negative ratio after balance------------")
         print(pos_fasta.shape[0]/neg_fasta.shape[0])
 
         data = np.concatenate([pos_fasta, neg_fasta])

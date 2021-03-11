@@ -1,15 +1,15 @@
 {
   "pos_forward_path": "/home/yanweng/snp_effect/data/for_model_v2/input_trans_idr_threshold/encode_complete_yg.fa",
   "neg_forward_path": "/home/yanweng/snp_effect/data/for_model_v2/input_trans_idr_threshold/univeral_negative_yg.fa",
-  "model_name": "complex_DanQ",
-  "num_epochs": 8,
+  "model_name": "DeepSea",
+  "num_epochs": 5,
   "batch_size": 256,
   "learning_rate": 0.001,
   "weight_decay": 0,
   "weight_value": "NA",
   "cell_cluster": [0],
-  "model_path": "/home/yanweng/snp_effect/data/for_model_v2/output_trans/0308_complex_DanQ_sub0.1_noFsigmoid/model.pt",
-  "output_evaluation_data_path": "/home/yanweng/snp_effect/data/for_model_v2/output_trans/0308_complex_DanQ_sub0.1_noFsigmoid",
+  "model_path": "/home/yanweng/snp_effect/data/for_model_v2/output_trans/0309_deepsea_sub0.1/model.pt",
+  "output_evaluation_data_path": "/home/yanweng/snp_effect/data/for_model_v2/output_trans/0309_deepsea_sub0.1",
   "subset": "True",
   "balance": "True"
 }

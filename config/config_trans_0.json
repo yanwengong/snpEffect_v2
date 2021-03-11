@@ -1,15 +1,15 @@
 {
   "pos_forward_path": "/Users/yanwengong/Documents/JingZhang_lab/snp_effect/data/test_rsync_local_v2/input_trans/encode_complete_yg.fa",
   "neg_forward_path": "/Users/yanwengong/Documents/JingZhang_lab/snp_effect/data/test_rsync_local_v2/input_trans/univeral_negative_yg.fa",
-  "model_name": "simple_DanQ",
-  "num_epochs": 2,
+  "model_name": "DeepATT",
+  "num_epochs": 4,
   "batch_size": 256,
   "learning_rate": 0.001,
   "weight_decay": 0.001,
   "weight_value": "NA",
   "cell_cluster": [0],
-  "model_path": "/Users/yanwengong/Documents/JingZhang_lab/snp_effect/data/test_rsync_local_v2/output_trans/0228_DQ/model.pt",
-  "output_evaluation_data_path": "/Users/yanwengong/Documents/JingZhang_lab/snp_effect/data/test_rsync_local_v2/output_trans/0228_DQ",
+  "model_path": "/Users/yanwengong/Documents/JingZhang_lab/snp_effect/data/test_rsync_local_v2/output_trans/0309_chvon/model.pt",
+  "output_evaluation_data_path": "/Users/yanwengong/Documents/JingZhang_lab/snp_effect/data/test_rsync_local_v2/output_trans/0309_chvon",
   "subset": "True",
   "balance": "True"
 }
