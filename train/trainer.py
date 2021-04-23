@@ -5,13 +5,13 @@ import copy
 import matplotlib.pyplot as plt
 import os
 import numpy as np
-from model.danq import DanQ, Simple_DanQ, Complex_DanQ, Simple_DanQ_noLSTM
-from model.sai import Net
-from model.conv_only import DeepSea
+from model.deepatt import ChQueryDiagonal
+
 
 class Trainer:
-    def __init__(self, model, train_data, eval_data, model_path, num_epochs, batch_size,
-                 learning_rate, weight_decay, weight, plot_path):
+    def __init__(self, registered_model, train_data, eval_data, model_path, num_epochs, batch_size,
+                 learning_rate, weight_decay, use_pos_weight, pos_weight, plot_path, n_class, n_class_trans,
+                 load_trans_model, trans_model_path):
 
         '''
         :param model: the model
@@ -19,7 +19,7 @@ class Trainer:
         :param model_path: path the save the trained model
         '''
 
-        self._model = model
+        self.registered_model = registered_model
         self.train_data = train_data
         self.eval_data = eval_data
         self._model_path = model_path
@@ -27,8 +27,13 @@ class Trainer:
         self._batch_size = batch_size
         self._learning_rate = learning_rate
         self._weight_decay = weight_decay
-        self.weight = weight
+        self.use_pos_weight = use_pos_weight
+        self.pos_weight = pos_weight
         self.plot_path = plot_path
+        self.n_class = n_class
+        self.n_class_trans = n_class_trans
+        self.load_trans_model = load_trans_model
+        self.trans_model_path = trans_model_path
 
     # @property
     # def data(self):
@@ -40,14 +45,68 @@ class Trainer:
 
     def train(self):
         """ train """
-
         device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-        model = self._model.to(device) # TODO modified 03/09
-        model.to(device)
+
+        # check whether to do transfer learning
+        if self.load_trans_model == "True":
+
+            model = self.registered_model.get_model(self.n_class_trans)
+            # load the previously saved weight
+            model.load_state_dict(torch.load(self.trans_model_path))
+            # change the output layer dimension
+            ## complex DQ
+            # num_ftrs = model.Linear2.out_features
+            # print("-----------output for the linear2 layer from preload model-------")
+            # print(num_ftrs)
+            # model.Linear3 = nn.Linear(num_ftrs, self.n_class).to(device)
+            # Chvon or DanQ
+            # num_ftrs = model.Linear1.out_features
+            # print("-----------output for the linear1 layer from preload model-------")
+            # print(num_ftrs)
+            # model.Linear2 = nn.Linear(num_ftrs, self.n_class).to(device)
+
+            # deepATT TODO: this is a bit complicated
+            num_out_ftrs = model.multi_head_attention.wq.out_features
+            print("-----------out feature of multi_head_attention.wq -------")
+            print(num_out_ftrs)
+            model.multi_head_attention.wq = nn.Linear(self.n_class, num_out_ftrs, bias=True).to(device)
+            model.category_encoding = ChQueryDiagonal(self.n_class)
+
+            # # TODO check this is right
+            print("----------- childern node count --------------")
+            ct = 0  # total there are 9 chid for complexDQ
+            # total there are 6 chid for DQ
+            # total there are 8 child for chvon2
+            for child in model.children():
+                print(" child", ct, "is:")
+                print(child)
+
+                # if ct < 3: # freeze the first two conv
+                #     print("child ", ct, " was frozen")
+                #     for param in child.parameters():
+                #         param.requires_grad = False
+
+                ct += 1
+            print("total number of children is: ", ct)
+
+        else:
+            print("-----------no preload model loaded, load new model-------")
+            model = self.registered_model.get_model(self.n_class)
+
+        model = model.to(device)
+
         # seed = 1
         # torch.cuda.manual_seed(seed)
 
         #model.apply(self._weights_init_uniform_rule) # TODO Uniform Initialization added on 03/03
+
+        print("----------Current Model's state_dict-----------")
+        for param_tensor in model.state_dict():
+            print(param_tensor, "\t", model.state_dict()[param_tensor].size())
+        print("----------Current Model's weight-----------")
+        # for param in model.parameters():
+        #     print(param.data[0])
+
 
         train_loss_hist = []
         eval_loss_hist = []
@@ -59,19 +118,19 @@ class Trainer:
             file.write("Epoch \t Data \t Loss \t Acc \n")
             file.close()
 
-        # with open(os.path.join(self.plot_path, "vali_record.txt"), 'w') as file:
-        #     file.write("Epoch \t Loss \t Acc \n")
-        #     file.close()
-
         best_model_wts = copy.deepcopy(model.state_dict())
-        best_acc = 0.0
+        best_loss = 1000
 
-        if self.weight == "NA":
-            criterion = nn.BCELoss().to(device)
-        else:
-            criterion = nn.BCELoss(weight=torch.tensor([self.weight])).to(device) ## for cluster 1(none dominant)
-
-        optimizer = torch.optim.Adam(model.parameters(), lr=self._learning_rate, weight_decay=self._weight_decay)
+        if self.use_pos_weight == "False":
+            print("not use pos weight in loss")
+            #criterion = nn.BCELoss().to(device)
+            criterion = nn.BCEWithLogitsLoss()
+        elif self.use_pos_weight == "True":
+            print("use pos weight in loss")
+            #criterion = nn.BCELoss(weight=torch.tensor([self.weight])).to(device) ## for cluster 1(none dominant)
+            criterion = nn.BCEWithLogitsLoss(pos_weight=torch.tensor([self.pos_weight]).to(device)) # TODO, compute weight
+        optimizer = torch.optim.Adam(model.parameters(), lr=self._learning_rate,
+                                     weight_decay=self._weight_decay, amsgrad=True)
         train_loader = torch.utils.data.DataLoader(self.train_data, batch_size=self._batch_size, shuffle=True)
         eval_loader = torch.utils.data.DataLoader(self.eval_data, batch_size=self._batch_size, shuffle=True)
 
@@ -85,26 +144,22 @@ class Trainer:
 
             model.train()  # set to train mode, use dropout and batchnorm ##
 
-            # for param in model.parameters():
-            #     print(param.data)
-
-            # with open(os.path.join(self.plot_path, "weight.txt"), 'w') as file:
-            #     for param in model.parameters():
-            #         file.write(param.data.detach().cpu().numpy())
-            #     file.close()
-            #np.savetxt(os.path.join(self.plot_path, str(epoch)+"weight.txt"), model.parameters().data.detach().cpu().np())
-
-            for X, y in tqdm(train_loader):
+            #for X, y in tqdm(train_loader):
+            for train_step, (X, y) in enumerate(train_loader):
 
                 X = X.to(device)
                 y = y.to(device)
 
                 # Forward pass: Compute predicted y by passing x to the model
-                y_pred_prob = model(X.float()) # predicted value
+                y_pred_logit = model(X.float()) # predicted value
                 #_, preds = torch.max(y_pred, 1) # TODO understand this line
 
                 # Compute and print loss
-                loss = criterion(y_pred_prob.float(), y.float())
+                # print("---------------y shape----------")
+                # print(y_pred_logit.float().shape) # wrong
+                # print(y.float().shape)# correct
+
+                loss = criterion(y_pred_logit.float(), y.float())
 
                 # a = list(model.parameters())[0].clone()# TODO modified 03/09, check the weight change before and after loss update
                 # Backward and optimize
@@ -113,28 +168,29 @@ class Trainer:
                 loss.backward() # for each parameter, calculate d(loss)/d(weight)
                 optimizer.step() # update weights, causes the optimizer to take a step based on the gradients of the parameters
 
-                # b = list(model.parameters())[0].clone()
-                # print("---------------check parameter update----------")
-                # print(torch.equal(a.data, b.data)) # True, backpropogation is not happening
-                # print("------------check first layer-------------")
-                # print(list(model.parameters())[0].grad[0]) ## contain gradient of the the first layer, Got matrix of all 0
-                # print("------------check last layer-------------")
-                # print(list(model.parameters())[-1].grad[0])
-
                 # statistics
-                y_pred = (y_pred_prob > 0.5).float()  ## 0/1
+                y_pred_prob = 1 / (1 + np.exp(-y_pred_logit.cpu().detach().numpy())) # calculate prob from logit
+                y_pred = y_pred_prob.round() ## 0./1.
+                y = y.cpu().detach().numpy()
+
                 train_loss += loss.item() * X.size(0) #loss.item() has be reducted by batch size
+                if epoch == 0 and train_step == 0:
+                    initial_loss = loss.item()
+                    initial_acc = np.sum(y_pred == y)/float(self._batch_size*self.n_class)
 
-                train_acc += torch.sum(y_pred == y)
+                train_acc += np.sum(y_pred == y)
 
-            if epoch % 1 == 0:
-                train_loss = train_loss/len(train_loader.dataset)
-                train_acc = train_acc.double() / len(train_loader.dataset)
-                print('Epoch {} {} Loss: {:.4f} Acc: {:.4f}'.format(epoch, 'train', train_loss, train_acc))
+            train_loss = train_loss/len(train_loader.dataset)
+            train_acc = train_acc/ float(len(train_loader.dataset)*self.n_class)
+            print('Epoch {} {} Loss: {:.4f} Acc: {:.4f}'.format(epoch, 'train', train_loss, train_acc))
 
-                with open(os.path.join(self.plot_path, "train_vali_record.txt"), 'a') as file:
-                    file.write("{} \t {} \t {:.4f} \t {:.4f} \n".format(epoch, 'train', train_loss, train_acc))
-                    file.close()
+            with open(os.path.join(self.plot_path, "train_vali_record.txt"), 'a') as file:
+                if epoch == 0:
+                    file.write("{} \t {} \t {:.4f} \t {:.4f} \n".format(0, 'train', initial_loss, initial_acc))
+                    train_loss_hist.append(initial_loss)
+                    train_acc_hist.append(initial_acc)
+                file.write("{} \t {} \t {:.4f} \t {:.4f} \n".format(epoch+1, 'train', train_loss, train_acc))
+                file.close()
 
             train_loss_hist.append(train_loss)
             train_acc_hist.append(train_acc)
@@ -148,28 +204,35 @@ class Trainer:
                 for X, y in tqdm(eval_loader):
                     optimizer.zero_grad() # make sure training and eval has minimum diff
                     X, y = X.to(device), y.to(device)
-                    y_pred_prob = model(X.float()) #TODO check whether the weights updated here since optimizer.step()
-                    eva_loss = criterion(y_pred_prob.float(), y.float())
+                    y_pred_logit = model(X.float()) #TODO check whether the weights updated here since optimizer.step()
+                    eva_loss = criterion(y_pred_logit.float(), y.float())
 
-                    y_pred = (y_pred_prob > 0.5).float() ## 0/1
+                    y_pred_prob = 1 / (1 + np.exp(-y_pred_logit.cpu().detach().numpy()))  # calculate prob from logit
+                    y_pred = y_pred_prob.round() ## 0./1.
+                    y = y.cpu().detach().numpy()
 
                     # statistics
                     eval_loss += eva_loss.item() * X.size(0)
-                    eval_acc += torch.sum(y_pred == y)
+                    eval_acc += np.sum(y_pred == y)
 
                 eval_loss = eval_loss / len(eval_loader.dataset)
-                eval_acc = eval_acc.double() / len(eval_loader.dataset)
+                eval_acc = eval_acc / float(len(eval_loader.dataset)*self.n_class)
 
                 print('{} Loss: {:.4f} Acc: {:.4f}'.format("validation", eval_loss, eval_acc))
                 with open(os.path.join(self.plot_path, "train_vali_record.txt"), 'a') as file:
-                    file.write("{} \t {} \t{:.4f} \t {:.4f} \n".format(epoch, 'validation', eval_loss, eval_acc))
+                    if epoch == 0:
+                        # add the fake validation initial loss and acc for the plotting purpose
+                        file.write("{} \t {} \t {:.4f} \t {:.4f} \n".format(0, 'validation', initial_loss, initial_acc))
+                        eval_loss_hist.append(initial_loss)
+                        eval_acc_hist.append(initial_acc)
+                    file.write("{} \t {} \t{:.4f} \t {:.4f} \n".format(epoch+1, 'validation', eval_loss, eval_acc))
                     file.close()
 
             eval_loss_hist.append(eval_loss)
             eval_acc_hist.append(eval_acc)
 
-            if eval_acc > best_acc:
-                best_acc = eval_acc
+            if eval_loss < best_loss: # TODO changed on 0318 save the last model based on loss
+                best_loss = eval_loss
                 best_model_wts = copy.deepcopy(model.state_dict())
 
 

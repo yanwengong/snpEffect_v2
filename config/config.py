@@ -1,6 +1,3 @@
-from model.danq import DanQ, Simple_DanQ, Complex_DanQ
-
-
 class Config():
 
     def __init__(self,
@@ -13,15 +10,19 @@ class Config():
                  # y_train_data_path,
                  # y_test_data_path,
                  model_name,
+                 load_trans_model,
                  num_epochs,
                  batch_size,
                  learning_rate,
                  weight_decay,
-                 weight_value,
+                 use_pos_weight,
                  model_path,
                  output_evaluation_data_path,
+                 trans_model_path,
                  subset,
-                 cell_cluster):
+                 cell_cluster,
+                 n_class_trans,
+                 balance):
 
         self.pos_forward_path = pos_forward_path
         self.encode_path = encode_path
@@ -32,16 +33,20 @@ class Config():
         # self.y_train_data_path = y_train_data_path
         # self.y_test_data_path = y_test_data_path
         self._model_name = model_name
+        self.load_trans_model = load_trans_model
         self._num_epochs = num_epochs
         self._batch_size = batch_size
         self._learning_rate = learning_rate
         self._weight_decay = weight_decay
-        self.weight_value = weight_value
+        self.use_pos_weight = use_pos_weight
         self._model_path = model_path
         self._output_evaluation_data_path = output_evaluation_data_path
+        self.trans_model_path = trans_model_path
         self._subset = subset
         self._cell_cluster = cell_cluster
         self._n_class = len(cell_cluster)
+        self.n_class_trans = n_class_trans
+        self.balance = balance
 
     @property
     def input_train_data_path(self):
@@ -114,16 +119,3 @@ class Config():
     # @subset.setter
     # def subset(self, subset):
     #     self._subset = subset
-
-
-    # TODO: move this part out to model folder as a new model registration class
-    def get_model(self):
-        if self._model_name == "DanQ":
-            return DanQ(self.n_class)
-        elif self._model_name == "simple_DanQ":
-            return Simple_DanQ(self.n_class)
-        elif self._model_name == "complex_DanQ":
-            print("complex_DanQ model")
-            return Complex_DanQ(self.n_class )
-        else:
-            return

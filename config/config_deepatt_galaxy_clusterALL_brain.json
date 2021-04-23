@@ -1,0 +1,20 @@
+{
+  "pos_forward_path": "/home/yanweng/snp_effect/data/for_model_brain_corces/input/brain_atac_hg38_final.fa",
+  "encode_path": "/home/yanweng/snp_effect/data/for_model_v2/input_trans_idr_threshold/univeral_negative_yg.fa",
+  "label_path": "/home/yanweng/snp_effect/data/for_model_brain_corces/input/brain_scATAC_label.csv",
+  "encode_n": 0,
+  "model_name": "DeepATT",
+  "load_trans_model": "False",
+  "num_epochs": 35,
+  "batch_size": 256,
+  "learning_rate": 0.001,
+  "weight_decay": 0,
+  "use_pos_weight": "False",
+  "cell_cluster": [0,1,2,3,4,5],
+  "n_class_trans":10000,
+  "model_path": "/home/yanweng/snp_effect/data/for_model_brain_corces/output/0331_deepatt_clusterALL_0kEncode_brain/model.pt",
+  "output_evaluation_data_path": "/home/yanweng/snp_effect/data/for_model_brain_corces/output/0331_deepatt_clusterALL_0kEncode_brain/",
+  "trans_model_path": "/home/yanweng/snp_effect/data/for_model_v2/output_trans/0329_chvon2_nobalance/model.pt",
+  "subset": "False",
+  "balance": "False"
+}

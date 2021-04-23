@@ -1,10 +1,11 @@
 import argparse
 import torch
-from data.pre_processor import Processor, ProcessorTrans
+from data.pre_processor import Concate, ConcateTrans, Processor
 from data.data_loader import Data
 from train.trainer import Trainer
 from evaluate.evaluator import Evaluator
 from utils.utils import Utils
+from utils.model_register import Model_Register
 from datetime import datetime
 import os
 
@@ -33,47 +34,57 @@ if __name__ == '__main__':
 
     # 3\ Get the configer.
     config = Utils.read_json(args.config, args.step)
+    registered_model = Model_Register(config.model_name)
 
+    print("create the output folder")
     if not os.path.exists(config.output_evaluation_data_path):
         os.makedirs(config.output_evaluation_data_path)
 
     # 4\ Load, process and split the data set
 
     if args.step == "main":
-        processor = Processor(config.pos_forward_path, config.encode_path, config.label_path, config.encode_n)
-        data, label = processor.concate_data()
+        processor = Concate(config.pos_forward_path, config.encode_path, config.label_path,
+                            config.encode_n, config.cell_cluster, config.subset)
+        #data, label, pos_weight = processor.concate_data()
     elif args.step == "transfer_learning":
-        processor = ProcessorTrans(config.pos_forward_path, config.neg_forward_path, config.balance)
-        data, label = processor.concate_data()
+        processor = ConcateTrans(config.pos_forward_path, config.neg_forward_path,
+                                 config.balance, config.subset)
+    data, label, pos_weight = processor.concate_data()
 
     data_train, data_eval, data_test, label_train, label_eval, label_test = processor.split_train_test(data, label)
 
     # 4\ Selecting the execution mode.
     if args.exe_mode == 'train':
-        print("--------loader start------------")
+        print("----------train data loader start--------")
+        print(config.cell_cluster)
+        train_data_loader = Data(data_train, label_train, config.cell_cluster)
 
-        train_data_loader = Data(data_train, label_train, config.cell_cluster, config.subset)
+        print("----------train data loader finish--------")
+        print("----------eval data loader start--------")
 
-        eval_data_loader = Data(data_eval, label_eval, config.cell_cluster, config.subset)
+        eval_data_loader = Data(data_eval, label_eval, config.cell_cluster)
 
-        print("--------loader finish------------")
+        print("----------eval data loader finish--------")
 
-        trainer = Trainer(config.get_model(), train_data_loader, eval_data_loader, config.model_path,
+        trainer = Trainer(registered_model, train_data_loader, eval_data_loader, config.model_path,
                           config.num_epochs, config.batch_size, config.learning_rate,
-                          config.weight_decay, config.weight_value, config.output_evaluation_data_path)
+                          config.weight_decay, config.use_pos_weight, pos_weight, config.output_evaluation_data_path,
+                          config.n_class, config.n_class_trans, config.load_trans_model, config.trans_model_path)
 
         print("train start time: ", datetime.now())
         trainer.train() # include save model to destination
         print("train end time: ", datetime.now())
 
     elif args.exe_mode == 'test':
-        train_data_loader = Data(data_train, label_train, config.cell_cluster, config.subset)
+        print("----------train data loader start--------")
+        train_data_loader = Data(data_train, label_train, config.cell_cluster)
         print("----------train data loader done--------")
 
-        test_data_loader = Data(data_test, label_test, config.cell_cluster, config.subset)
+        print("----------test data loader start--------")
+        test_data_loader = Data(data_test, label_test, config.cell_cluster)
         print("----------test data loader done--------")
 
-        evaluator = Evaluator(config.get_model(), train_data_loader, test_data_loader, config.model_path,
+        evaluator = Evaluator(registered_model, train_data_loader, test_data_loader, config.model_path,
                               config.output_evaluation_data_path, config.batch_size,
                               config.n_class)
         evaluator.evaluate()

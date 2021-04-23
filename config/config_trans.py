@@ -1,11 +1,4 @@
-from model.danq import DanQ, Simple_DanQ, Complex_DanQ, Simple_DanQ_noLSTM
-from model.sai import Net
-from model.conv_only import DeepSea
-from model.chvon import Chvon, Chvon2
-from model.deepatt import DeepATT
-
 class ConfigTrans():
-
     def __init__(self,
                  # pos_forward_path,
                  # encode_path,
@@ -18,12 +11,15 @@ class ConfigTrans():
                  batch_size,
                  learning_rate,
                  weight_decay,
-                 weight_value,
+                 use_pos_weight,
                  model_path,
                  output_evaluation_data_path,
                  subset,
                  balance,
-                 cell_cluster):
+                 cell_cluster,
+                 n_class_trans,
+                 load_trans_model,
+                 trans_model_path):
 
         # self.pos_forward_path = pos_forward_path
         # self.encode_path = encode_path
@@ -36,13 +32,16 @@ class ConfigTrans():
         self._batch_size = batch_size
         self._learning_rate = learning_rate
         self._weight_decay = weight_decay
-        self.weight_value = weight_value
+        self.use_pos_weight = use_pos_weight
         self._model_path = model_path
         self._output_evaluation_data_path = output_evaluation_data_path
         self._subset = subset
         self._cell_cluster = cell_cluster
         self._balance = balance
+        self.load_trans_model = load_trans_model
+        self.trans_model_path = trans_model_path
         self._n_class = len(cell_cluster)
+        self.n_class_trans = n_class_trans
 
     @property
     def input_train_data_path(self):
@@ -119,46 +118,3 @@ class ConfigTrans():
     # @subset.setter
     # def subset(self, subset):
     #     self._subset = subset
-
-    # TODO: move this part out to model folder as a new model registration class
-    def get_model(self):
-        if self._model_name == "DanQ":
-            print("--------MODEL: DanQ-------")
-            return DanQ(self.n_class)
-
-        elif self._model_name == "simple_DanQ":
-            print("--------MODEL: simple_DanQ-------")
-            return Simple_DanQ(self.n_class)
-
-        elif self._model_name == "complex_DanQ":
-            print("--------MODEL: complex_DanQ-------")
-            return Complex_DanQ(self.n_class)
-
-        elif self._model_name == "Simple_DanQ_noLSTM":
-            print("--------MODEL: Simple_DanQ_noLSTM-------")
-            return Simple_DanQ_noLSTM(self.n_class)
-
-        elif self._model_name == "Sai":
-            print("--------MODEL: Net-------")
-            return Net()
-
-        elif self._model_name == "DeepSea":
-            print("--------MODEL: DeepSea-------")
-            return DeepSea()
-
-        elif self._model_name == "Chvon":
-            print("--------MODEL: Chvon-------")
-            return Chvon()
-
-        elif self._model_name == "Chvon2":
-            print("--------MODEL: Chvon2-------")
-            return Chvon2()
-
-        elif self._model_name == "DeepATT":
-            print("--------MODEL: DeepATT-------")
-            return DeepATT()
-
-
-        else:
-            print("--------No Model Retrieved!-------")
-            return

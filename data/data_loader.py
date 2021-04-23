@@ -7,17 +7,12 @@ class Data(Dataset):
     def __init__(self, data, label, cell_cluster, subset ="True"):
         # (n,) array, each element is string, dtype=object
         self.data = data # fasta of forward, no chr title, 1d np.array, shape is n
-        #self.label = label[:, cell_cluster] TODO commented on 03/03
-        self.label = label
+        #print(label)
+        self.label = label # cell cluster has been handled in pre-process
         print("-----------------shape before add RC -------------")
         print(self.data.shape)
         print(self.label.shape)
 
-        if subset == "True":
-            self._subset()
-        print("-----------------shape after subset -------------")
-        print(self.data.shape)
-        print(self.label.shape)
 
         # add reverse complement
         temp = []
@@ -34,7 +29,7 @@ class Data(Dataset):
         temp = np.array(temp, dtype=object)
         self.data = np.append(self.data, temp, axis=0)
         self.label = np.append(self.label, self.label, axis=0)
-        print("-----------------shape after init data loader-------------")
+        print("-----------------shape after subset and add RC-------------")
         print(self.data.shape)
         print(self.label.shape)
         # if self.label.shape[1] == 1:
@@ -67,12 +62,13 @@ class Data(Dataset):
 
         return X, y
 
-    def _subset(self):
-        size = int(np.floor(self.data.shape[0] * 0.1))
-        np.random.seed(202101190)
-        X_index = np.random.choice(self.data.shape[0], size=size, replace=False)
-        np.random.seed(202101190)
-        y_index = np.random.choice(self.label.shape[0], size=size, replace=False)
-
-        self.data = self.data[X_index]
-        self.label = self.label[y_index, :]
+    # subset moved to pre_processing
+    # def _subset(self):
+    #     size = int(np.floor(self.data.shape[0] * 0.01))
+    #     np.random.seed(202101190)
+    #     index = np.random.choice(self.data.shape[0], size=size, replace=False)
+    #     # np.random.seed(202101190)
+    #     # y_index = np.random.choice(self.label.shape[0], size=size, replace=False)
+    #
+    #     self.data = self.data[index]
+    #     self.label = self.label[index, :]

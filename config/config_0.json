@@ -1,16 +1,20 @@
 {
   "pos_forward_path": "/Users/yanwengong/Documents/JingZhang_lab/snp_effect/data/test_rsync_local_v2/input_fasta/pos_forward.fa",
-  "encode_path": "/Users/yanwengong/Documents/JingZhang_lab/snp_effect/data/test_rsync_local_v2/input_fasta/encode_negative.fa",
-  "label_path": "/Users/yanwengong/Documents/JingZhang_lab/snp_effect/data/test_rsync_local_v2/input_fasta/label.txt",
-  "encode_n": 100000,
-  "model_name": "simple_DanQ",
-  "num_epochs": 50,
+  "encode_path": "/Users/yanwengong/Documents/JingZhang_lab/snp_effect/data/test_rsync_local_v2/input_trans_idr_threshold/univeral_negative_yg.fa",
+  "label_path": "/Users/yanwengong/Documents/JingZhang_lab/snp_effect/data/test_rsync_local_v2/input_fasta/label_one_hot.txt",
+  "encode_n": 0,
+  "model_name": "Chvon2",
+  "load_trans_model": "False",
+  "num_epochs": 2,
   "batch_size": 256,
   "learning_rate": 0.001,
   "weight_decay": 0.001,
-  "weight_value": 2.2493868392214162,
-  "cell_cluster": [1],
-  "model_path": "/Users/yanwengong/Documents/JingZhang_lab/snp_effect/data/test_rsync_local_v2/output/0222_simpleDQ_fasta/model",
-  "output_evaluation_data_path": "/Users/yanwengong/Documents/JingZhang_lab/snp_effect/data/test_rsync_local_v2/output/0222_simpleDQ_fasta",
-  "subset": "True"
+  "use_pos_weight": "True",
+  "cell_cluster": [0,1,2,3,4,5,6,7],
+  "model_path": "/Users/yanwengong/Documents/JingZhang_lab/snp_effect/data/test_rsync_local_v2/output/0328_Chvon2/model.pt",
+  "output_evaluation_data_path": "/Users/yanwengong/Documents/JingZhang_lab/snp_effect/data/test_rsync_local_v2/output/0328_Chvon2",
+  "trans_model_path": "/Users/yanwengong/Documents/JingZhang_lab/snp_effect/data/galaxy_output/transfer_learning/0304_complex_DanQ_balance_idr/model.pt",
+  "subset": "True",
+  "balance": "False"
 }
+

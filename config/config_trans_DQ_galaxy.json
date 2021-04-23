@@ -1,14 +1,17 @@
 {
-  "pos_forward_path": "/home/yanweng/snp_effect/data/for_model_v2/input_trans/encode_complete_yg.fa",
-  "neg_forward_path": "/home/yanweng/snp_effect/data/for_model_v2/input_trans/univeral_negative_yg.fa",
+  "pos_forward_path": "/home/yanweng/snp_effect/data/for_model_v2/input_trans_idr_threshold/encode_complete_yg.fa",
+  "neg_forward_path": "/home/yanweng/snp_effect/data/for_model_v2/input_trans_idr_threshold/univeral_negative_yg.fa",
   "model_name": "DanQ",
-  "num_epochs": 50,
+  "load_trans_model": "False",
+  "num_epochs": 20,
   "batch_size": 256,
   "learning_rate": 0.001,
-  "weight_decay": 0.001,
+  "weight_decay": 0,
   "weight_value": "NA",
   "cell_cluster": [0],
-  "model_path": "/home/yanweng/snp_effect/data/for_model_v2/output_trans/0228_DanQ_yg/model.pt",
-  "output_evaluation_data_path": "/home/yanweng/snp_effect/data/for_model_v2/output_trans/0228_DanQ_yg",
-  "subset": "False"
+  "model_path": "/home/yanweng/snp_effect/data/for_model_v2/output_trans/0323_DanQ/model.pt",
+  "output_evaluation_data_path": "/home/yanweng/snp_effect/data/for_model_v2/output_trans/0323_DanQ",
+  "trans_model_path": "NA",
+  "subset": "False",
+  "balance": "True"
 }

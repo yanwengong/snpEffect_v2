@@ -1,0 +1,20 @@
+{
+  "pos_forward_path": "/home/yanweng/snp_effect/data/for_model_v2/input_fa/pos_forward.fa",
+  "encode_path": "/home/yanweng/snp_effect/data/for_model_v2/input_trans_idr_threshold/univeral_negative_yg.fa",
+  "label_path": "/home/yanweng/snp_effect/data/for_model_v2/input_fa/label_one_hot.txt",
+  "encode_n": 10000,
+  "model_name": "DeepATT",
+  "load_trans_model": "True",
+  "num_epochs": 25,
+  "batch_size": 64,
+  "learning_rate": 0.0005,
+  "weight_decay": 0,
+  "use_pos_weight": "False",
+  "cell_cluster": [0,1,2,3,4,5,6,7],
+  "n_class_trans":1,
+  "model_path": "/home/yanweng/snp_effect/data/for_model_v2/output/0412_DeepATT_negative10k_TRANS_bs64_lr0.0005/model.pt",
+  "output_evaluation_data_path": "/home/yanweng/snp_effect/data/for_model_v2/output/0412_DeepATT_negative10k_TRANS_bs64_lr0.0005/",
+  "trans_model_path": "/home/yanweng/snp_effect/data/for_model_v2/output_trans/0402_deepatt_nobalance/model.pt",
+  "subset": "False",
+  "balance": "False"
+}

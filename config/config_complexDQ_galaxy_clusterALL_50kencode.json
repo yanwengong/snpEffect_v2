@@ -1,0 +1,19 @@
+{
+  "pos_forward_path": "/home/yanweng/snp_effect/data/for_model_v2/input_fa/pos_forward.fa",
+  "encode_path": "/home/yanweng/snp_effect/data/for_model_v2/input_trans_idr_threshold/univeral_negative_yg.fa",
+  "label_path": "/home/yanweng/snp_effect/data/for_model_v2/input_fa/label.txt",
+  "encode_n": 50000,
+  "model_name": "Chvon2",
+  "load_trans_model": "False",
+  "num_epochs": 20,
+  "batch_size": 256,
+  "learning_rate": 0.001,
+  "weight_decay": 0,
+  "use_pos_weight": "True",
+  "cell_cluster": [0,1,2,3,4,5,6,7],
+  "model_path": "/home/yanweng/snp_effect/data/for_model_v2/output/0325_DanQ_clusterALL_50kEncode_posweight1_7/model.pt",
+  "output_evaluation_data_path": "/home/yanweng/snp_effect/data/for_model_v2/output/0325_DanQ_clusterALL_50kEncode_posweight1_7/",
+  "trans_model_path": "/home/yanweng/snp_effect/data/for_model_v2/output_trans/0322_chvon2/model.pt",
+  "subset": "False",
+  "balance": "False"
+}
