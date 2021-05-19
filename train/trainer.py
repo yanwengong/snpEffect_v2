@@ -59,18 +59,18 @@ class Trainer:
             # print("-----------output for the linear2 layer from preload model-------")
             # print(num_ftrs)
             # model.Linear3 = nn.Linear(num_ftrs, self.n_class).to(device)
-            # Chvon or DanQ
-            # num_ftrs = model.Linear1.out_features
-            # print("-----------output for the linear1 layer from preload model-------")
-            # print(num_ftrs)
-            # model.Linear2 = nn.Linear(num_ftrs, self.n_class).to(device)
+            # Chvon or DanQ or DeepSEA3
+            num_ftrs = model.Linear1.out_features
+            print("-----------output for the linear1 layer from preload model-------")
+            print(num_ftrs)
+            model.Linear2 = nn.Linear(num_ftrs, self.n_class).to(device)
 
             # deepATT TODO: this is a bit complicated
-            num_out_ftrs = model.multi_head_attention.wq.out_features
-            print("-----------out feature of multi_head_attention.wq -------")
-            print(num_out_ftrs)
-            model.multi_head_attention.wq = nn.Linear(self.n_class, num_out_ftrs, bias=True).to(device)
-            model.category_encoding = ChQueryDiagonal(self.n_class)
+            # num_out_ftrs = model.multi_head_attention.wq.out_features
+            # print("-----------out feature of multi_head_attention.wq -------")
+            # print(num_out_ftrs)
+            # model.multi_head_attention.wq = nn.Linear(self.n_class, num_out_ftrs, bias=True).to(device)
+            # model.category_encoding = ChQueryDiagonal(self.n_class)
 
             # # TODO check this is right
             print("----------- childern node count --------------")

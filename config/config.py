@@ -20,6 +20,9 @@ class Config():
                  output_evaluation_data_path,
                  trans_model_path,
                  subset,
+                 test_small_cluster,
+                 exclude_index_path,
+                 include_index_path,
                  cell_cluster,
                  n_class_trans,
                  balance):
@@ -43,6 +46,9 @@ class Config():
         self._output_evaluation_data_path = output_evaluation_data_path
         self.trans_model_path = trans_model_path
         self._subset = subset
+        self.test_small_cluster = test_small_cluster
+        self.exclude_index_path = exclude_index_path
+        self.include_index_path = include_index_path
         self._cell_cluster = cell_cluster
         self._n_class = len(cell_cluster)
         self.n_class_trans = n_class_trans
