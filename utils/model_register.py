@@ -2,7 +2,8 @@ from model.danq import DanQ, Simple_DanQ, Complex_DanQ
 from model.chvon import Chvon2, Chvon3
 from model.deepatt import DeepATT, DeepATT_modified
 from model.cnn_activation import CnnActivation
-from model.deepsea import DeepSEA
+from model.deepsea import DeepSEA, DeepSEA2, DeepSEA3, DeepSEA4
+from model.decode import Decode, Decode2
 
 
 class Model_Register():
@@ -37,6 +38,21 @@ class Model_Register():
         elif self.model_name == "DeepSea":
             print("DeepSea")
             return DeepSEA(n_class)
+        elif self.model_name == "DeepSea2":
+            print("DeepSea2")
+            return DeepSEA2(n_class)
+        elif self.model_name == "DeepSea3":
+            print("DeepSea3")
+            return DeepSEA3(n_class)
+        elif self.model_name == "DeepSea4":
+            print("DeepSea4")
+            return DeepSEA4(n_class)
+        elif self.model_name == "Decode":
+            print("Decode")
+            return Decode(n_class)
+        elif self.model_name == "Decode2":
+            print("Decode2")
+            return Decode2(n_class)
         else:
             print("--------No Model Retrieved!-------")
             return
