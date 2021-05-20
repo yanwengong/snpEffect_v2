@@ -6,16 +6,13 @@ from sklearn.utils.class_weight import compute_class_weight
 class Concate():
     # TODO: change the encode_path naming to neg_path
     def __init__(self, pos_fasta_path, encode_path, label_path, encode_n, cell_cluster,
-                 subset, test_small_cluster, exclude_index_path, include_index_path):
+                 subset):
         self.pos_fasta_path = pos_fasta_path
         self.encode_path = encode_path
         self.label_path = label_path
         self.encode_n = encode_n
         self.cell_cluster = cell_cluster
         self.subset = subset
-        self.test_small_cluster = test_small_cluster
-        self.exclude_index = np.loadtxt(exclude_index_path, dtype = 'int')
-        self.include_index = np.loadtxt(include_index_path, dtype = 'int')
 
     def concate_data(self):
         pos_fasta = pd.read_csv(self.pos_fasta_path,sep=">chr*",header=None, engine='python').values[1::2][:,0] # (n,) array, each element is string, dtype=object
@@ -56,33 +53,6 @@ class Concate():
         print(data.shape) #(124538,)
         print(label.shape) #(124538, 1)
 
-        if self.test_small_cluster == "True":
-
-            exclude_fasta = data[self.exclude_index]
-            exclude_label = label[self.exclude_index]
-            print("----------- test_small_cluster is true ------------")
-            print("----------- exclude shape ------------")
-            print("exclude_fasta")
-            print(exclude_fasta.shape)
-            print("exclude_label")
-            print(exclude_label.shape)
-
-            data = data[self.include_index]
-            label = label[self.include_index]
-            print("----------- test_small_cluster is true ------------")
-            print("----------- shape ------------")
-            print("pos_size")
-            print(data.shape)
-            print("label")
-            print(label.shape)  # (114538, 1)
-
-        else:
-            exclude_fasta = np.empty([1])
-            exclude_label = np.empty([1])
-            print("-----------------fake exclude_fasta and exclude_label -------------")
-            print(exclude_fasta)
-            print(exclude_label)
-
         if self.subset == "True":
             data, label = self._subset(data, label)
         print("-----------------shape after subset -------------")
@@ -100,9 +70,9 @@ class Concate():
         print(pos_weight)
 
 
-        return data, label, pos_weight, exclude_fasta, exclude_label
+        return data, label, pos_weight
 
-    def split_train_test(self, data, label, exclude_fasta, exclude_label, test_size = 0.1):
+    def split_train_test(self, data, label, test_size = 0.1):
         data_train_temp, data_test, label_train_temp, label_test = train_test_split(data, label, test_size=test_size, random_state=12)
         data_train, data_eval, label_train, label_eval = train_test_split(data_train_temp, label_train_temp, test_size=test_size, random_state=12)
 
@@ -117,15 +87,6 @@ class Concate():
         print("-----------test size concate------------")
         print(data_test.shape) #(21454,)
         print(label_test.shape) #(21454,)
-
-        if self.test_small_cluster == "True":
-            data_test = np.concatenate([data_test, exclude_fasta])
-            label_test = np.concatenate([label_test, exclude_label])
-            print("-----------test_small_cluster is true------------")
-            print("-----------below is updated test label------------")
-            print(data_test.shape)  # (21454,)
-            print(label_test.shape)  # (21454,)
-
 
         return data_train, data_eval, data_test, label_train, label_eval, label_test
 

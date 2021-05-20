@@ -44,13 +44,10 @@ if __name__ == '__main__':
 
     if args.step == "main":
         processor = Concate(config.pos_forward_path, config.encode_path, config.label_path,
-                            config.encode_n, config.cell_cluster, config.subset,
-                            config.test_small_cluster, config.exclude_index_path, config.include_index_path)
-        data, label, pos_weight, exclude_fasta, exclude_label = processor.concate_data()
+                            config.encode_n, config.cell_cluster, config.subset)
+        data, label, pos_weight = processor.concate_data()
 
-        data_train, data_eval, data_test, label_train, label_eval, label_test = processor.split_train_test(data, label,
-                                                                                                           exclude_fasta,
-                                                                                                           exclude_label)
+        data_train, data_eval, data_test, label_train, label_eval, label_test = processor.split_train_test(data, label)
         #data, label, pos_weight = processor.concate_data()
     elif args.step == "transfer_learning":
         processor = ConcateTrans(config.pos_forward_path, config.neg_forward_path,

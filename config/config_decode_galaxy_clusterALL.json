@@ -12,8 +12,8 @@
   "use_pos_weight": "False",
   "cell_cluster": [0,1,2,3,4,5,6,7],
   "n_class_trans":8,
-  "model_path": "/home/yanweng/snp_effect/data/for_model_v2/output/0503_decode_negative10k_lr0.0005_bs64_4/model.pt",
-  "output_evaluation_data_path": "/home/yanweng/snp_effect/data/for_model_v2/output/0503_decode_negative10k_lr0.0005_bs64_4/",
+  "model_path": "/home/yanweng/snp_effect/data/for_model_v2/output/0519_decode_negative10k_lr0.0005_bs64_4_TEST/model.pt",
+  "output_evaluation_data_path": "/home/yanweng/snp_effect/data/for_model_v2/output/0519_decode_negative10k_lr0.0005_bs64_4_TEST/",
   "trans_model_path": "/home/yanweng/snp_effect/data/for_model_v2/output/0402_deepATT_negative10k/model.pt",
   "subset": "False",
   "balance": "False"
