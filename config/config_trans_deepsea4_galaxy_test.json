@@ -1,0 +1,19 @@
+{
+  "pos_forward_path": "/home/yanweng/snp_effect/data/for_model_v2/input_trans_idr_threshold/encode_complete_yg.fa",
+  "neg_forward_path": "/home/yanweng/snp_effect/data/for_model_v2/input_trans_idr_threshold/univeral_negative_yg.fa",
+  "model_name": "DeepSea4",
+  "load_trans_model": "False",
+  "num_epochs": 25,
+  "batch_size": 64,
+  "learning_rate": 0.0005,
+  "weight_decay": 0,
+  "use_pos_weight": "False",
+  "cell_cluster": [0],
+  "n_class_trans": 1,
+  "model_path": "/home/yanweng/snp_effect/data/for_model_v2/output_trans/0521_deepsea4_test/model.pt",
+  "output_evaluation_data_path": "/home/yanweng/snp_effect/data/for_model_v2/output_trans/0521_deepsea4_test/",
+  "trans_model_path": "NA",
+  "subset": "False",
+  "balance": "False"
+}
+

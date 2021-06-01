@@ -107,16 +107,16 @@ class Concate():
         data_train, data_eval, label_train, label_eval = train_test_split(data_train_temp, label_train_temp, test_size=test_size, random_state=12)
 
         print("-----------train size concate------------")
-        print(data_train.shape) #(173775,)
-        print(label_train.shape) #(173775, 1)
+        print(data_train.shape) #(100875,)
+        print(label_train.shape) #(100875, 1)
 
         print("-----------eval size concate------------")
-        print(data_eval.shape) #(19309,)
-        print(label_eval.shape) #(19309, 1)
+        print(data_eval.shape) #(11209,)
+        print(label_eval.shape) #(11209, 1)
 
         print("-----------test size concate------------")
-        print(data_test.shape) #(21454,)
-        print(label_test.shape) #(21454,)
+        print(data_test.shape) #(12454,)
+        print(label_test.shape) #(12454,)
 
         if self.test_small_cluster == "True":
             data_test = np.concatenate([data_test, exclude_fasta])

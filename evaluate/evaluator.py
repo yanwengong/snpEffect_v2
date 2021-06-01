@@ -42,7 +42,6 @@ class Evaluator:
         # second_query = second_query.cpu().detach().numpy()
         # np.savetxt(os.path.join(self._output_evaluation_data_path,"second_stage_query.csv"), second_query, delimiter=",")
 
-
         train_loader = torch.utils.data.DataLoader(self._train_data, batch_size=self._batch_size, shuffle=True)
         test_loader = torch.utils.data.DataLoader(self._test_data, batch_size=self._batch_size, shuffle=True)
 

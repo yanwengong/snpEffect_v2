@@ -1,0 +1,24 @@
+{
+  "pos_forward_path": "/home/yanweng/snp_effect/data/for_model_v2/input_fa/pos_forward.fa",
+  "encode_path": "/home/yanweng/snp_effect/data/for_model_v2/input_trans_idr_threshold/univeral_negative_yg.fa",
+  "label_path": "/home/yanweng/snp_effect/data/for_model_v2/input_fa/label_one_hot_experiment2.txt",
+  "encode_n": 10000,
+  "model_name": "DeepSea",
+  "load_trans_model": "True",
+  "num_epochs": 15,
+  "batch_size": 64,
+  "learning_rate": 0.0005,
+  "weight_decay": 0,
+  "use_pos_weight": "False",
+  "cell_cluster": [0,1,2,3,4,5,6,7],
+  "n_class_trans":1,
+  "model_path": "/home/yanweng/snp_effect/data/for_model_v2/output/0520_DeepSea_experiment2_TRANS/model.pt",
+  "output_evaluation_data_path": "/home/yanweng/snp_effect/data/for_model_v2/output/0520_DeepSea_experiment2_TRANS/",
+  "trans_model_path": "/home/yanweng/snp_effect/data/for_model_v2/output_trans/0517_deepsea/model.pt",
+  "subset": "False",
+  "test_small_cluster": "True",
+  "exclude_index_path": "/home/yanweng/snp_effect/data/for_model_v2/input_fa/cluster8_only_index_half.txt",
+  "include_index_path": "/home/yanweng/snp_effect/data/for_model_v2/input_fa/except_cluster8_only_index_half.txt",
+  "balance": "False"
+}
+
