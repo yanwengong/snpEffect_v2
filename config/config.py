@@ -21,6 +21,7 @@ class Config():
                  trans_model_path,
                  subset,
                  cell_cluster,
+                 n_class,
                  n_class_trans,
                  balance):
 
@@ -43,8 +44,8 @@ class Config():
         self._output_evaluation_data_path = output_evaluation_data_path
         self.trans_model_path = trans_model_path
         self._subset = subset
-        self._cell_cluster = cell_cluster
-        self._n_class = len(cell_cluster)
+        self.cell_cluster = cell_cluster
+        self.n_class = n_class
         self.n_class_trans = n_class_trans
         self.balance = balance
 
@@ -108,13 +109,7 @@ class Config():
     def subset(self):
         return self._subset
 
-    @property
-    def cell_cluster(self):
-        return self._cell_cluster
 
-    @property
-    def n_class(self):
-        return self._n_class
 
     # @subset.setter
     # def subset(self, subset):

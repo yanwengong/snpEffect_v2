@@ -46,10 +46,11 @@ class Evaluator:
         train_loader = torch.utils.data.DataLoader(self._train_data, batch_size=self._batch_size, shuffle=True)
         test_loader = torch.utils.data.DataLoader(self._test_data, batch_size=self._batch_size, shuffle=True)
 
-        y_train, p_train_pred = self._predict(train_loader, "train")
+
+        y_train, p_train_pred = self._predict(train_loader)
         print("--------------_predict y_train output--------------")
         print(type(y_train))
-        y_test, p_test_pred = self._predict(test_loader, "test")
+        y_test, p_test_pred = self._predict(test_loader)
 
         if y_train.shape[1] == p_train_pred.shape[1] == y_test.shape[1] == p_test_pred.shape[1] == 1:
             print("--------------binary prediction--------------")
@@ -84,7 +85,7 @@ class Evaluator:
             self._plot_overall_roc(y_train, p_train_pred, y_test, p_test_pred, self._output_evaluation_data_path)
             print("multi-label metrics and roc curve done")
 
-    def _predict(self, data_loader, file_name):
+    def _predict(self, data_loader):
         self._mode.eval()
 
         device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
@@ -120,8 +121,8 @@ class Evaluator:
             y_hat_arr = 1 / (1 + np.exp(-y_hat_arr))  # 0320 evening, add sigmoid
             # print(y_hat_arr)
 
-            pd.DataFrame(y_hat_arr).to_csv(os.path.join(self._output_evaluation_data_path,
-                                                        file_name+"_y_hat.csv"))
+            # pd.DataFrame(y_hat_arr).to_csv(os.path.join(self._output_evaluation_data_path,
+            #                                             file_name+"_y_hat.csv"))
             print(np.count_nonzero(y_arr))
             print('Test loss {}'.format(test_loss))
             print("------------------ train/test prediction done --------------------")

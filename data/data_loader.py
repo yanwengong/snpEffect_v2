@@ -4,7 +4,9 @@ from torch.utils.data import Dataset
 from datetime import datetime
 
 class Data(Dataset):
-    def __init__(self, data, label, cell_cluster, subset ="True"):
+
+    # The __init__ function is run once when instantiating the Dataset object.
+    def __init__(self, data, label, subset ="True"):
         # (n,) array, each element is string, dtype=object
         self.data = data # fasta of forward, no chr title, 1d np.array, shape is n
         #print(label)
@@ -32,16 +34,12 @@ class Data(Dataset):
         print("-----------------shape after subset and add RC-------------")
         print(self.data.shape)
         print(self.label.shape)
-        # if self.label.shape[1] == 1:
-        #     pos_count = np.count_nonzero(self.label)
-        #     neg_count = self.data.shape[0] - np.count_nonzero(self.label)
-        #     self.weight_value = neg_count/pos_count
-        #     print(f"calculated weight is {self.weight_value}")
 
-
+    # The __len__ function returns the number of samples in our dataset.
     def __len__(self):
         return self.data.shape[0] ## check
 
+    # The __getitem__ function loads and returns a sample from the dataset at the given index idx.
     def __getitem__(self, index):
         seq = self.data[index]
         row_index = 0
@@ -61,14 +59,3 @@ class Data(Dataset):
         y = torch.tensor(self.label[index]).float()
 
         return X, y
-
-    # subset moved to pre_processing
-    # def _subset(self):
-    #     size = int(np.floor(self.data.shape[0] * 0.01))
-    #     np.random.seed(202101190)
-    #     index = np.random.choice(self.data.shape[0], size=size, replace=False)
-    #     # np.random.seed(202101190)
-    #     # y_index = np.random.choice(self.label.shape[0], size=size, replace=False)
-    #
-    #     self.data = self.data[index]
-    #     self.label = self.label[index, :]

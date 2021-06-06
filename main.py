@@ -36,6 +36,9 @@ if __name__ == '__main__':
     config = Utils.read_json(args.config, args.step)
     registered_model = Model_Register(config.model_name)
 
+    if config.cell_cluster == "all":
+        config.cell_cluster = list(range(0, config.n_class, 1))
+
     print("create the output folder")
     if not os.path.exists(config.output_evaluation_data_path):
         os.makedirs(config.output_evaluation_data_path)
@@ -61,12 +64,12 @@ if __name__ == '__main__':
     if args.exe_mode == 'train':
         print("----------train data loader start--------")
         print(config.cell_cluster)
-        train_data_loader = Data(data_train, label_train, config.cell_cluster)
+        train_data_loader = Data(data_train, label_train)
 
         print("----------train data loader finish--------")
         print("----------eval data loader start--------")
 
-        eval_data_loader = Data(data_eval, label_eval, config.cell_cluster)
+        eval_data_loader = Data(data_eval, label_eval)
 
         print("----------eval data loader finish--------")
 
@@ -81,11 +84,11 @@ if __name__ == '__main__':
 
     elif args.exe_mode == 'test':
         print("----------train data loader start--------")
-        train_data_loader = Data(data_train, label_train, config.cell_cluster)
+        train_data_loader = Data(data_train, label_train)
         print("----------train data loader done--------")
 
         print("----------test data loader start--------")
-        test_data_loader = Data(data_test, label_test, config.cell_cluster)
+        test_data_loader = Data(data_test, label_test)
         print("----------test data loader done--------")
 
         evaluator = Evaluator(registered_model, train_data_loader, test_data_loader, config.model_path,

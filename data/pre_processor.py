@@ -43,9 +43,11 @@ class Concate():
         #label = label.to_numpy().reshape(n_frag, 8) ## shape is n x 8
         label = label.to_numpy()
 
+
         label = label[:, self.cell_cluster] ## select the cluster for label
 
         neg_label = np.zeros((self.encode_n, len(self.cell_cluster)))
+
         label = np.concatenate([label, neg_label])
 
 

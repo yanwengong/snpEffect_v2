@@ -1,0 +1,22 @@
+{
+  "pos_forward_path": "/home/yanweng/snp_effect/data/for_model_fetal/input/merged_fetal_1kb.fa",
+  "encode_path": "/home/yanweng/snp_effect/data/for_model_v2/input_trans_idr_threshold/univeral_negative_yg.fa",
+  "label_path": "/home/yanweng/snp_effect/data/for_model_fetal/input/label_one_hot.txt",
+  "encode_n": 0,
+  "model_name": "DeepSea4",
+  "load_trans_model": "True",
+  "num_epochs": 20,
+  "batch_size": 64,
+  "learning_rate": 0.0005,
+  "weight_decay": 0,
+  "use_pos_weight": "False",
+  "cell_cluster": "all",
+  "n_class": 54,
+  "n_class_trans":1,
+  "model_path": "/home/yanweng/snp_effect/data/for_model_v2/output/0603_DeepSea4_negative0_fetal_TRANS/model.pt",
+  "output_evaluation_data_path": "/home/yanweng/snp_effect/data/for_model_v2/output/0603_DeepSea4_negative0_fetal_TRANS/",
+  "trans_model_path": "/home/yanweng/snp_effect/data/for_model_v2/output_trans/0520_deepsea4/model.pt",
+  "subset": "False",
+  "balance": "False"
+}
+
