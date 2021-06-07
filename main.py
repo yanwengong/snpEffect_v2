@@ -50,7 +50,8 @@ if __name__ == '__main__':
                             config.encode_n, config.cell_cluster, config.subset)
         data, label, pos_weight = processor.concate_data()
 
-        data_train, data_eval, data_test, label_train, label_eval, label_test = processor.split_train_test(data, label)
+        data_train, data_eval, data_test, label_train, \
+        label_eval, label_test, test_size = processor.split_train_test(data, label)
         #data, label, pos_weight = processor.concate_data()
     elif args.step == "transfer_learning":
         processor = ConcateTrans(config.pos_forward_path, config.neg_forward_path,
@@ -92,7 +93,7 @@ if __name__ == '__main__':
         print("----------test data loader done--------")
 
         evaluator = Evaluator(registered_model, train_data_loader, test_data_loader, config.model_path,
-                              config.output_evaluation_data_path, config.batch_size,
+                              config.output_evaluation_data_path, config.batch_size, test_size,
                               config.n_class)
         evaluator.evaluate()
 

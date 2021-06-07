@@ -16,7 +16,7 @@
   "output_evaluation_data_path": "/Users/yanwengong/Documents/JingZhang_lab/snp_effect/data/test_rsync_local_v2/output/0501_decode",
   "trans_model_path": "/Users/yanwengong/Documents/JingZhang_lab/snp_effect/data/galaxy_output/transfer_learning/0304_complex_DanQ_balance_idr/model.pt",
   "subset": "False",
-  "test_small_cluster": "True",
+  "test_small_cluster": "False",
   "exclude_index_path": "/Users/yanwengong/Documents/JingZhang_lab/snp_effect/data/test_rsync_local_v2/input_fasta/cluster8_only_index_1000.txt",
   "include_index_path": "/Users/yanwengong/Documents/JingZhang_lab/snp_effect/data/test_rsync_local_v2/input_fasta/except_cluster8_only_index_1000.txt",
   "balance": "False"

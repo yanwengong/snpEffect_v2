@@ -12,7 +12,7 @@ from tqdm import tqdm
 
 class Evaluator:
     def __init__(self, registered_model, train_data, test_data, model_path, output_evaluation_data_path,
-                 batch_size, n_class):
+                 batch_size, test_size, n_class):
         '''
         :param train_data: train data
         :param test_data: test_data
@@ -26,6 +26,7 @@ class Evaluator:
         self._mode.load_state_dict(torch.load(model_path))
         self._output_evaluation_data_path = output_evaluation_data_path
         self._batch_size = batch_size
+        self._test_size = test_size
 
 
     def evaluate(self):
@@ -46,11 +47,32 @@ class Evaluator:
         train_loader = torch.utils.data.DataLoader(self._train_data, batch_size=self._batch_size, shuffle=True)
         test_loader = torch.utils.data.DataLoader(self._test_data, batch_size=self._batch_size, shuffle=True)
 
+        test_loader_forward_reverse = torch.utils.data.DataLoader(self._test_data, batch_size=self._batch_size, shuffle=False)
+
 
         y_train, p_train_pred = self._predict(train_loader)
         print("--------------_predict y_train output--------------")
         print(type(y_train))
         y_test, p_test_pred = self._predict(test_loader)
+
+        y_test_forward_reverse, p_test_forward_reverse_pred = self._predict(test_loader_forward_reverse)
+        print("-------------- test_forward_reverse shape --------------")
+        print(y_test_forward_reverse.shape) #(22908, 8)
+        print(p_test_forward_reverse_pred.shape) #(22908, 8)
+
+        ## take max of the predicted forward and reverse
+
+        # p_test_fr_pred_final = np.amax((p_test_forward_reverse_pred[0:self._test_size],
+        #                                        p_test_forward_reverse_pred[self._test_size:]), axis=0)
+        p_test_fr_pred_final = np.mean((p_test_forward_reverse_pred[0:self._test_size],
+                                               p_test_forward_reverse_pred[self._test_size:]), axis=0)
+        y_test_fr_final = y_test_forward_reverse[0:self._test_size]
+        # double_check = y_test_forward_reverse[self._test_size:]
+        # print("-------------- test_forward_reverse double check --------------")
+        # print(np.array_equal(double_check, y_test_fr_final))
+        # print(double_check)
+        # print(y_test_fr_final)
+
 
         if y_train.shape[1] == p_train_pred.shape[1] == y_test.shape[1] == p_test_pred.shape[1] == 1:
             print("--------------binary prediction--------------")
@@ -83,6 +105,8 @@ class Evaluator:
             print(type(y_train))
             self._get_overall_performance_metrics(y_train, p_train_pred, y_test, p_test_pred, self._output_evaluation_data_path)
             self._plot_overall_roc(y_train, p_train_pred, y_test, p_test_pred, self._output_evaluation_data_path)
+            self._get_overall_performance_metrics_fr(y_test_fr_final, p_test_fr_pred_final, self._output_evaluation_data_path)
+
             print("multi-label metrics and roc curve done")
 
     def _predict(self, data_loader):
@@ -179,6 +203,7 @@ class Evaluator:
             'metrics')
         file_name = cell + "_" + "perf_metrics.csv"
         all_metrics.to_csv(os.path.join(output_path, file_name))
+
 
 
         ################## before 02/26 ###############################
@@ -281,6 +306,28 @@ class Evaluator:
                                     'test': metric_values_test},
                                    columns=['metrics', 'train', 'test']).set_index('metrics')
         file_name = "overall_perf_metrics.csv"
+        all_metrics.to_csv(os.path.join(output_path, file_name))
+
+
+
+    def _get_overall_performance_metrics_fr(self, y_train, y_train_hat, output_path, threshold=0.5, average="micro"):
+        metric_names = ['AUC', 'AUPR', 'Exact_match_ratio', 'Precision', 'Recall', 'f1-score']
+        print("----------y_train----------")
+        print(y_train)
+        print("----------y_train_hat----------")
+        print(y_train_hat)
+        metric_values_train = [roc_auc_score(y_train, y_train_hat, average=average),
+                               average_precision_score(y_train, y_train_hat, average=average),
+                               self._calculate_micro_acc(y_train, y_train_hat), # the set of labels predicted for a sample must exactly match the corresponding set of labels in y_true.
+                               precision_score(y_train, y_train_hat > threshold, average=average),
+                               recall_score(y_train, y_train_hat > threshold, average=average),
+                               f1_score(y_train, y_train_hat > threshold, average=average)]
+        metric_values_train = np.array(metric_values_train).round(3)
+
+        all_metrics = pd.DataFrame({'metrics': metric_names,
+                                    'train': metric_values_train},
+                                   columns=['metrics', 'train', 'test']).set_index('metrics')
+        file_name = "overall_forward_reverse_perf_metrics.csv"
         all_metrics.to_csv(os.path.join(output_path, file_name))
 
     def _prepare_macro_roc(self, fpr, tpr, roc_auc, n_class, y, p_y_pred):

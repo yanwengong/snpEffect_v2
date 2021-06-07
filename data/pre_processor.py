@@ -88,9 +88,11 @@ class Concate():
 
         print("-----------test size concate------------")
         print(data_test.shape) #(21454,)
-        print(label_test.shape) #(21454,)
+        print(label_test.shape) #(21454,) no encode: (11454, 8)
 
-        return data_train, data_eval, data_test, label_train, label_eval, label_test
+        test_size = data_test.shape[0]
+
+        return data_train, data_eval, data_test, label_train, label_eval, label_test, test_size
 
     def _subset(self, data, label):
         size = int(np.floor(data.shape[0] * 0.1))
