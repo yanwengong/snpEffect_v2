@@ -11,7 +11,7 @@ from tqdm import tqdm
 
 
 class Evaluator:
-    def __init__(self, registered_model, train_data, test_data, model_path, output_evaluation_data_path,
+    def __init__(self, registered_model, train_data, test_data, all_data, model_path, output_evaluation_data_path,
                  batch_size, test_size, n_class):
         '''
         :param train_data: train data
@@ -23,6 +23,7 @@ class Evaluator:
         self._mode = registered_model.get_model(self.n_class)
         self._train_data = train_data
         self._test_data = test_data
+        self._all_data = all_data
         self._mode.load_state_dict(torch.load(model_path))
         self._output_evaluation_data_path = output_evaluation_data_path
         self._batch_size = batch_size
@@ -43,10 +44,11 @@ class Evaluator:
         # second_query = second_query.cpu().detach().numpy()
         # np.savetxt(os.path.join(self._output_evaluation_data_path,"second_stage_query.csv"), second_query, delimiter=",")
 
-
         train_loader = torch.utils.data.DataLoader(self._train_data, batch_size=self._batch_size, shuffle=True)
         test_loader = torch.utils.data.DataLoader(self._test_data, batch_size=self._batch_size, shuffle=True)
 
+        #train_loader_forward_reverse = torch.utils.data.DataLoader(self._train_data, batch_size=self._batch_size, shuffle=False)
+        all_loader = torch.utils.data.DataLoader(self._all_data, batch_size=self._batch_size, shuffle=False)
         test_loader_forward_reverse = torch.utils.data.DataLoader(self._test_data, batch_size=self._batch_size, shuffle=False)
 
 
@@ -55,17 +57,19 @@ class Evaluator:
         print(type(y_train))
         y_test, p_test_pred = self._predict(test_loader)
 
+        y_all_forward_reverse, p_all_forward_reverse_pred = self._predict(all_loader)
         y_test_forward_reverse, p_test_forward_reverse_pred = self._predict(test_loader_forward_reverse)
+
         print("-------------- test_forward_reverse shape --------------")
         print(y_test_forward_reverse.shape) #(22908, 8)
         print(p_test_forward_reverse_pred.shape) #(22908, 8)
 
         ## take max of the predicted forward and reverse
 
-        # p_test_fr_pred_final = np.amax((p_test_forward_reverse_pred[0:self._test_size],
-        #                                        p_test_forward_reverse_pred[self._test_size:]), axis=0)
-        p_test_fr_pred_final = np.mean((p_test_forward_reverse_pred[0:self._test_size],
+        p_test_fr_pred_final = np.amax((p_test_forward_reverse_pred[0:self._test_size],
                                                p_test_forward_reverse_pred[self._test_size:]), axis=0)
+        # p_test_fr_pred_final = np.mean((p_test_forward_reverse_pred[0:self._test_size],
+        #                                        p_test_forward_reverse_pred[self._test_size:]), axis=0)
         y_test_fr_final = y_test_forward_reverse[0:self._test_size]
         # double_check = y_test_forward_reverse[self._test_size:]
         # print("-------------- test_forward_reverse double check --------------")
@@ -73,6 +77,9 @@ class Evaluator:
         # print(double_check)
         # print(y_test_fr_final)
 
+        # self._get_max_indedx(p_train_forward_reverse_pred, "train")
+        # self._get_max_indedx(p_test_forward_reverse_pred, "test")
+        self._get_max_indedx(p_all_forward_reverse_pred)
 
         if y_train.shape[1] == p_train_pred.shape[1] == y_test.shape[1] == p_test_pred.shape[1] == 1:
             print("--------------binary prediction--------------")
@@ -108,6 +115,8 @@ class Evaluator:
             self._get_overall_performance_metrics_fr(y_test_fr_final, p_test_fr_pred_final, self._output_evaluation_data_path)
 
             print("multi-label metrics and roc curve done")
+
+
 
     def _predict(self, data_loader):
         self._mode.eval()
@@ -152,6 +161,32 @@ class Evaluator:
             print("------------------ train/test prediction done --------------------")
 
             return y_arr, y_hat_arr
+
+
+    def _get_max_indedx(self, p_pred):
+
+        """
+        function to get the index of max and reverse
+        :param p_pred: the predicted score, first half is forward, second half is reverse
+        #:param type: "train" or "test"
+        return: in each cluster, return two np array containing the index should be included as forward/reverse
+        """
+
+        size = int(p_pred.shape[0]/2)
+        max_index = np.argmax((p_pred[0:size],
+                               p_pred[size:]), axis=0)
+        for i in range(p_pred.shape[1]):
+            cluster_forward_index = np.argwhere(max_index[:, i] == 0)
+            cluster_reverse_index = np.argwhere(max_index[:, i] == 1)
+
+            forward_file_name = "forward_cluster_" + str(i) + "_" + "index.npy"
+            np.save(os.path.join(self._output_evaluation_data_path, forward_file_name),
+                    cluster_forward_index)
+
+            reverse_file_name = "reverse_cluster_" + str(i) + "_" + "index.npy"
+            np.save(os.path.join(self._output_evaluation_data_path, reverse_file_name),
+                    cluster_reverse_index)
+
 
     def _format(self, y):
         return y[0:y.shape[0], :]

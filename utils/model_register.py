@@ -4,6 +4,7 @@ from model.deepatt import DeepATT, DeepATT_modified
 from model.cnn_activation import CnnActivation
 from model.deepsea import DeepSEA, DeepSEA2, DeepSEA3, DeepSEA4
 from model.decode import Decode, Decode2
+from model.block import BasicBlock
 
 
 class Model_Register():
@@ -53,6 +54,9 @@ class Model_Register():
         elif self.model_name == "Decode2":
             print("Decode2")
             return Decode2(n_class)
+        elif self.model_name == "BasicBlock":
+            print("BasicBlock")
+            return BasicBlock(n_class)
         else:
             print("--------No Model Retrieved!-------")
             return

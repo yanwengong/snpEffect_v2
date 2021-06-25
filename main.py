@@ -74,6 +74,7 @@ if __name__ == '__main__':
 
         print("----------eval data loader finish--------")
 
+
         trainer = Trainer(registered_model, train_data_loader, eval_data_loader, config.model_path,
                           config.num_epochs, config.batch_size, config.learning_rate,
                           config.weight_decay, config.use_pos_weight, pos_weight, config.output_evaluation_data_path,
@@ -92,7 +93,13 @@ if __name__ == '__main__':
         test_data_loader = Data(data_test, label_test)
         print("----------test data loader done--------")
 
-        evaluator = Evaluator(registered_model, train_data_loader, test_data_loader, config.model_path,
+        print("----------all data loader start--------")
+
+        all_data_loader = Data(data, label)
+
+        print("----------all data loader finish--------")
+
+        evaluator = Evaluator(registered_model, train_data_loader, test_data_loader, all_data_loader, config.model_path,
                               config.output_evaluation_data_path, config.batch_size, test_size,
                               config.n_class)
         evaluator.evaluate()

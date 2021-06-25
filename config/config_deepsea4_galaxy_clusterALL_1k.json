@@ -13,7 +13,7 @@
   "cell_cluster": "all",
   "n_class": 8,
   "n_class_trans":8,
-  "model_path": "/home/yanweng/snp_effect/data/for_model_v2/output/0529_DeepSea4_negative0_pbmc1k/model.pt",
+  "model_path": "/home/yanweng/snp_effect/data/for_model_v2/output/0530_DeepSea4_negative0/model.pt",
   "output_evaluation_data_path": "/home/yanweng/snp_effect/data/for_model_v2/output/0606_DeepSea4_negative0_pbmc1k_test_max/",
   "trans_model_path": "/home/yanweng/snp_effect/data/for_model_v2/output/0402_deepATT_negative10k/model.pt",
   "subset": "False",
