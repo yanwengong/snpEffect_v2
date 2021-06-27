@@ -76,12 +76,12 @@ class Evaluator:
         y_test_fr_final = y_test_forward_reverse[0:self._test_size]
 
 
-        ## save the test_label and test_predicted
-        # np.save(os.path.join(self._output_evaluation_data_path, "p_test_fr_label.npy"),
-        #         y_test_fr_final)
-        #
-        # np.save(os.path.join(self._output_evaluation_data_path, "p_test_fr_pred.npy"),
-        #         p_test_fr_pred_final)
+        # save the test_label and test_predicted
+        np.save(os.path.join(self._output_evaluation_data_path, "p_test_fr_label.npy"),
+                y_test_fr_final)
+
+        np.save(os.path.join(self._output_evaluation_data_path, "p_test_fr_pred.npy"),
+                p_test_fr_pred_final)
 
         # double_check = y_test_forward_reverse[self._test_size:]
         # print("-------------- test_forward_reverse double check --------------")

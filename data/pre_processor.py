@@ -32,10 +32,13 @@ class Concate():
         encode_index = np.random.choice(encode_fasta.shape[0], size=self.encode_n, replace=False)
         encode_fasta = encode_fasta[encode_index]
 
+        ## get the df of index of each chrom
+        loc = pos_fasta.values[0::2][:, 1]
+        loc_df = pd.DataFrame(data={'loc': loc})
+        loc_df_split = loc_df.iloc[:, 0].str.split(":", expand=True)
 
         data = np.concatenate([pos_fasta, encode_fasta])
         #encode_n = int(encode_fasta.shape[0]) ## check if need to devide by 2
-
         # label = label.iloc[:,0].str.strip("{}").str.get_dummies(',').rename(
         #     columns=lambda x: x.strip("'"))
         # n_frag = int(label.shape[0])
@@ -72,11 +75,27 @@ class Concate():
         print(pos_weight)
 
 
-        return data, label, pos_weight
+        return data, label, pos_weight, loc_df_split
 
-    def split_train_test(self, data, label, test_size = 0.1):
-        data_train_temp, data_test, label_train_temp, label_test = train_test_split(data, label, test_size=test_size, random_state=12)
-        data_train, data_eval, label_train, label_eval = train_test_split(data_train_temp, label_train_temp, test_size=test_size, random_state=12)
+    def split_train_test(self, data, label, loc_df_split, chr, test_size = 0.1):
+
+        train_index = loc_df_split[loc_df_split[0]!=chr].index
+        test_index = loc_df_split[loc_df_split[0]==chr].index
+        if bool(set(train_index) & set(test_index)):
+            raise ValueError("Train data index has overlap with test data index")
+
+        data_train_temp = data[train_index]
+        data_test = data[test_index]
+
+        label_train_temp = label[train_index]
+        label_test = label[test_index]
+
+        data_train, data_eval, \
+        label_train, label_eval = train_test_split(data_train_temp, label_train_temp,
+                                                   test_size=test_size, random_state=12)
+
+        print("-----------chromosome------------")
+        print(chr)
 
         print("-----------train size concate------------")
         print(data_train.shape) #(173775,)
