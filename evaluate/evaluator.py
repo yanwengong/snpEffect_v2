@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 import os
-from sklearn.metrics import precision_score, accuracy_score, recall_score, f1_score, roc_auc_score, average_precision_score
+from sklearn.metrics import precision_score, accuracy_score, recall_score, f1_score, roc_auc_score, average_precision_score, precision_recall_curve
 from sklearn.metrics import roc_curve, auc
 import matplotlib.pyplot as plt
 import numpy as np
@@ -57,7 +57,10 @@ class Evaluator:
         print(type(y_train))
         y_test, p_test_pred = self._predict(test_loader)
 
+        # below is to get the max index of forward and reseverse
         y_all_forward_reverse, p_all_forward_reverse_pred = self._predict(all_loader)
+
+        # below is to calculate the test performance matrix based on its max of forward/reverse
         y_test_forward_reverse, p_test_forward_reverse_pred = self._predict(test_loader_forward_reverse)
 
         print("-------------- test_forward_reverse shape --------------")
@@ -71,6 +74,15 @@ class Evaluator:
         # p_test_fr_pred_final = np.mean((p_test_forward_reverse_pred[0:self._test_size],
         #                                        p_test_forward_reverse_pred[self._test_size:]), axis=0)
         y_test_fr_final = y_test_forward_reverse[0:self._test_size]
+
+
+        ## save the test_label and test_predicted
+        # np.save(os.path.join(self._output_evaluation_data_path, "p_test_fr_label.npy"),
+        #         y_test_fr_final)
+        #
+        # np.save(os.path.join(self._output_evaluation_data_path, "p_test_fr_pred.npy"),
+        #         p_test_fr_pred_final)
+
         # double_check = y_test_forward_reverse[self._test_size:]
         # print("-------------- test_forward_reverse double check --------------")
         # print(np.array_equal(double_check, y_test_fr_final))
@@ -95,8 +107,8 @@ class Evaluator:
             for i in range(y_train.shape[1]):
                 y_train_i = y_train[:, i]
                 p_train_pred_i = p_train_pred[:, i]
-                y_test_i = y_test[:, i]
-                p_test_pred_i = p_test_pred[:, i]
+                y_test_i = y_test_fr_final[:, i]
+                p_test_pred_i = p_test_fr_pred_final[:, i]
                 print("------individual metrics shape------")
                 print(y_train_i.shape)
                 print(p_train_pred_i.shape)
@@ -113,7 +125,8 @@ class Evaluator:
             self._get_overall_performance_metrics(y_train, p_train_pred, y_test, p_test_pred, self._output_evaluation_data_path)
             self._plot_overall_roc(y_train, p_train_pred, y_test, p_test_pred, self._output_evaluation_data_path)
             self._get_overall_performance_metrics_fr(y_test_fr_final, p_test_fr_pred_final, self._output_evaluation_data_path)
-
+            self._plot_overall_roc_auc_paper(y_train, p_train_pred, y_test_fr_final, p_test_fr_pred_final, self._output_evaluation_data_path)
+            self._plot_overall_rocpr(y_test_fr_final, p_test_fr_pred_final, self._output_evaluation_data_path)
             print("multi-label metrics and roc curve done")
 
 
@@ -240,81 +253,11 @@ class Evaluator:
         all_metrics.to_csv(os.path.join(output_path, file_name))
 
 
-
-        ################## before 02/26 ###############################
-        # # calculate and save overall performance metrics
-        # perf_metrics = self.get_overall_performance_metrics(
-        #     y_train, self._format(y_train_hat),
-        #     y_test, self._format(y_test_hat),
-        #     threshold=0.5, average="micro")
-        #
-        # perf_metrics.to_csv(os.path.join(self._output_evaluation_data_path, "perf_metrics.csv"))
-        #
-        # print("overall metrics calculation done")
-        #
-        # # plot overall roc
-        # self.plot_overall_roc(
-        #     y_train, y_train_hat,
-        #     y_test, y_test_hat,
-        #     os.path.join(self._output_evaluation_data_path, "roc.pdf"))
-        #
-        # print("overall roc curve done")
-        #
-        # # ploc overall roc and save individual metrics
-        # print("----------below is y_train_hat---------")
-        # print(y_train_hat)
-        # print("----------below is y_test_hat----------")
-        # print(y_test_hat)
-        # self.plot_individual_roc(
-        #     y_train, y_train_hat,
-        #     y_test, y_test_hat,
-        #     self._output_evaluation_data_path)
-        #
-        # print("individual metrics and roc curve done")
-        ################## before 02/26 ###############################
-
-    # def _plot_individual_roc(self, y_train, y_train_hat, y_test, y_test_hat, plot_path):
-    #     for i in range(y_train.shape[1]):
-    #         individual_y_train = y_train[:, i]
-    #         individual_y_train_hat = y_train_hat[:, i]
-    #         individual_y_test = y_test[:, i]
-    #         individual_y_test_hat = y_test_hat[:, i]
-    #
-    #         perf_metrics = self.get_individual_performance_metrics(
-    #             individual_y_train, individual_y_train_hat,
-    #             individual_y_test, individual_y_test_hat, threshold=0.5)
-    #
-    #         file_name = "".join(["perf_metrics_cluster", str(i), ".csv"])
-    #         perf_metrics.to_csv(os.path.join(plot_path, file_name))
-    #
-    #         plot_name = "".join(["roc", str(i), ".pdf"])
-    #         roc_auc_train = roc_auc_score(individual_y_train, individual_y_train_hat, average="micro")
-    #         fpr_train, tpr_train, _ = roc_curve(individual_y_train, individual_y_train_hat)
-    #
-    #         roc_auc_test = roc_auc_score(individual_y_test, individual_y_test_hat, average="micro")
-    #         fpr_test, tpr_test, _ = roc_curve(individual_y_test, individual_y_test_hat)
-    #
-    #         plt.figure()
-    #         lw = 2
-    #         plt.plot(fpr_train, tpr_train, color='green',
-    #                  lw=lw, label='ROC Train (AUC = %0.4f)' % roc_auc_train)
-    #         plt.plot(fpr_test, tpr_test, color='darkorange',
-    #                  lw=lw, label='ROC Test (AUC = %0.4f)' % roc_auc_test)
-    #         plt.plot([0, 1], [0, 1], color='navy', lw=lw, linestyle='--')
-    #         plt.xlim([0.0, 1.0])
-    #         plt.ylim([0.0, 1.05])
-    #         plt.xlabel('False Positive Rate')
-    #         plt.ylabel('True Positive Rate')
-    #         plt.title('Receiver operating characteristic curve')
-    #         plt.legend(loc="lower right")
-    #         plt.savefig(os.path.join(plot_path,plot_name))
-
     def _calculate_micro_acc(self, y, y_hat):
         y_pred = y_hat.round() # convert prob to 0/1
         correct = np.sum(y == y_pred)
         acc = float(correct) / (y.shape[0]*y.shape[1])
         return acc
-
 
     def _get_overall_performance_metrics(self, y_train, y_train_hat, y_test, y_test_hat, output_path, threshold=0.5, average="micro"):
         metric_names = ['AUC', 'AUPR', 'Exact_match_ratio', 'Precision', 'Recall', 'f1-score']
@@ -342,8 +285,6 @@ class Evaluator:
                                    columns=['metrics', 'train', 'test']).set_index('metrics')
         file_name = "overall_perf_metrics.csv"
         all_metrics.to_csv(os.path.join(output_path, file_name))
-
-
 
     def _get_overall_performance_metrics_fr(self, y_train, y_train_hat, output_path, threshold=0.5, average="micro"):
         metric_names = ['AUC', 'AUPR', 'Exact_match_ratio', 'Precision', 'Recall', 'f1-score']
@@ -414,7 +355,7 @@ class Evaluator:
 
         plt.plot(fpr["micro_test"], tpr["micro_test"],
                  label='micro_test ROC (area = {0:0.2f})'
-                       ''.format(roc_auc["micro_train"]),
+                       ''.format(roc_auc["micro_test"]),
                  color='orange',
                  linestyle=':', linewidth=4)
 
@@ -428,61 +369,52 @@ class Evaluator:
         plot_name = "roc.pdf"
         plt.savefig(os.path.join(plot_path, plot_name))
 
+    def _plot_overall_roc_auc_paper(self, y_train, y_train_hat, y_test, y_test_hat, plot_path):
 
-    # def get_individual_performance_metrics(self, y_train, y_train_hat, y_test, y_test_hat, threshold=0.5):
-    #     metric_names = ['AUC', 'Accuracy', 'Precision', 'Recall', 'f1-score']
-    #     metric_values_train = [roc_auc_score(y_train, y_train_hat),
-    #                            accuracy_score(y_train, y_train_hat > threshold),
-    #                            precision_score(y_train, y_train_hat > threshold),
-    #                            recall_score(y_train, y_train_hat > threshold),
-    #                            f1_score(y_train, y_train_hat > threshold)]
-    #     metric_values_train = np.array(metric_values_train).round(3)
-    #     metric_values_test = [roc_auc_score(y_test, y_test_hat),
-    #                           accuracy_score(y_test, y_test_hat > threshold),
-    #                           precision_score(y_test, y_test_hat > threshold),
-    #                           recall_score(y_test, y_test_hat > threshold),
-    #                           f1_score(y_test, y_test_hat > threshold)]
-    #     metric_values_test = np.array(metric_values_test).round(3)
-    #     all_metrics = pd.DataFrame({'metrics': metric_names,
-    #                                 'train': metric_values_train,
-    #                                 'test': metric_values_test},
-    #                                columns=['metrics', 'train', 'test']).set_index('metrics')
-    #     return all_metrics
-    #
+        fpr, tpr, roc_auc = self._prepare_overall_roc(y_train, y_train_hat, y_test, y_test_hat)
 
+        plt.figure()
 
+        plt.plot(fpr["micro_test"], tpr["micro_test"],
+                 label='ROC AUC {0:0.3f}'
+                       ''.format(roc_auc["micro_test"]),
+                 color='navy',
+                 linestyle='solid', linewidth=2)
 
+        plt.plot([0, 1], [0, 1], 'k--')
+        plt.xlim([0.0, 1.0])
+        plt.ylim([0.0, 1.05])
+        plt.xlabel('False Positive Rate', size=14)
+        plt.ylabel('True Positive Rate', size=14)
+        plt.title("Receiver operating characteristic", size=14)
+        plt.legend(loc="lower right", prop={'size': 14})
+        plt.rc('xtick', labelsize=12)
+        plt.rc('ytick', labelsize=12)
+        plt.legend(loc="lower right", prop={'size': 14})
+        plot_name = "test_micro_roc.pdf"
+        plt.savefig(os.path.join(plot_path, plot_name))
 
-    # def _predict2(self, data_loader):
-    #     self._mode.eval()
-    #     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-    #     test_loss = 0
-    #     correct = 0
-    #     y_pred = []
-    #     y_true = []
-    #     y_proba = []
-    #
-    #     with torch.no_grad():
-    #         for data, target in tqdm(data_loader):
-    #             data, target = data.to(device), target.to(device)
-    #             output = self._mode(data).squeeze()
-    #             test_loss += nn.BCELoss()(output, target).item() * 1e+1  # sum up batch loss
-    #             prob = (output)
-    #             y_probas = prob.cpu().numpy()
-    #             prob[prob >= 0.5] = 1
-    #             prob[prob < 0.5] = 0
-    #             correct += torch.sum(prob == target)
-    #             for i in range(len(prob)):
-    #                 y_proba.append(float(y_probas[i]))
-    #                 y_pred.append(float(prob[i]))
-    #                 y_true.append(float(target[i]))
-    #         #target_names = ['Negative', 'Positive']
-    #         # roc(y_true,y_proba)
-    #         # prc(y_true,y_proba)
-    #         #print(classification_report(y_true, y_pred, target_names=target_names))
-    #
-    #         print("---------new y_proba--------------")
-    #         print(y_proba)
-    #         print("---------new y_proba done--------------")
-    #         return y_pred, y_true, y_proba
+    def _plot_overall_rocpr(self, y_test, y_test_hat, plot_path):
 
+        precision, recall, _ = precision_recall_curve(y_test.ravel(), y_test_hat.ravel())
+
+        aupr = auc(recall, precision)
+        plt.figure()
+
+        plt.plot(recall, precision,
+                 label='AUPR {0:0.3f}'
+                       ''.format(aupr),
+                 color='navy',
+                 linestyle='solid', linewidth=2)
+
+        plt.plot([0, 1], [1, 0], 'k--')
+        plt.xlim([0.0, 1.0])
+        plt.ylim([0.0, 1.05])
+        plt.xlabel('Recall', size=14)
+        plt.ylabel('Precision', size=14)
+        plt.title("Precision-recall Curve", size=14)
+        plt.legend(loc="lower right", prop={'size': 14})
+        plt.rc('xtick', labelsize=12)
+        plt.rc('ytick', labelsize=12)
+        plot_name = "test_precision_recall_curve.pdf"
+        plt.savefig(os.path.join(plot_path, plot_name))
