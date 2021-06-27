@@ -16,7 +16,6 @@ class Config():
                  learning_rate,
                  weight_decay,
                  use_pos_weight,
-                 model_path,
                  output_evaluation_data_path,
                  trans_model_path,
                  subset,
@@ -40,7 +39,6 @@ class Config():
         self._learning_rate = learning_rate
         self._weight_decay = weight_decay
         self.use_pos_weight = use_pos_weight
-        self._model_path = model_path
         self._output_evaluation_data_path = output_evaluation_data_path
         self.trans_model_path = trans_model_path
         self._subset = subset

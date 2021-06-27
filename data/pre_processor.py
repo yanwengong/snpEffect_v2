@@ -33,7 +33,7 @@ class Concate():
         encode_fasta = encode_fasta[encode_index]
 
         ## get the df of index of each chrom
-        loc = pos_fasta.values[0::2][:, 1]
+        loc = pd.read_csv(self.pos_fasta_path,sep=">chr*",header=None, engine='python').values[0::2][:, 1]
         loc_df = pd.DataFrame(data={'loc': loc})
         loc_df_split = loc_df.iloc[:, 0].str.split(":", expand=True)
 

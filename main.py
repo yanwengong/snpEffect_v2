@@ -13,7 +13,7 @@ if __name__ == '__main__':
     # 1\ Parses the command line arguments and returns as a simple namespace.
 
     parser = argparse.ArgumentParser(description='main.py')
-    parser.add_argument('-e', '--exe_mode', default='train', help='The execution mode.(train/test)')
+    #parser.add_argument('-e', '--exe_mode', default='train', help='The execution mode.(train/test)')
     parser.add_argument('-c', '--config', default='./config/config_1.json', help='The config file of experiment.')
     parser.add_argument('-s', '--step', default='transfer_learning', help='The step of model (transfer_learning/main)')
 
@@ -38,65 +38,63 @@ if __name__ == '__main__':
 
     # 4\ Load, process and split the data set
 
-    if args.step == "main":
-        processor = Concate(config.pos_forward_path, config.encode_path, config.label_path,
-                            config.encode_n, config.cell_cluster, config.subset)
-        data, label, pos_weight, loc_df_split = processor.concate_data()
-        chr_id = loc_df_split.iloc[:, 0].unique()
+    processor = Concate(config.pos_forward_path, config.encode_path, config.label_path,
+                        config.encode_n, config.cell_cluster, config.subset)
+    data, label, pos_weight, loc_df_split = processor.concate_data()
+    chr_id = loc_df_split.iloc[:, 0].unique()
 
 
-        # TODO add for loop here, to loop over the chr and do train and test
+    # TODO add for loop here, to loop over the chr and do train and test
 
-        for i in chr_id:
-            result_path = os.path.join(config.output_evaluation_data_path, i)
-            model_path = os.path.join(result_path, "model.pt")
+    for i in chr_id:
+        result_path = os.path.join(config.output_evaluation_data_path, i)
+        model_path = os.path.join(result_path, "model.pt")
 
-            if not os.path.exists(result_path):
-                os.makedirs(result_path)
+        if not os.path.exists(result_path):
+            os.makedirs(result_path)
 
-            data_train, data_eval, \
-            data_test, label_train, \
-            label_eval, label_test, \
-            test_size = processor.split_train_test(data, label, loc_df_split, i)
+        data_train, data_eval, \
+        data_test, label_train, \
+        label_eval, label_test, \
+        test_size = processor.split_train_test(data, label, loc_df_split, i)
 
-            # train
-            print("----------train data loader start--------")
-            print(config.cell_cluster)
-            train_data_loader = Data(data_train, label_train)
-            print("----------train data loader finish--------")
+        # train
+        print("----------train data loader start--------")
+        print(config.cell_cluster)
+        train_data_loader = Data(data_train, label_train)
+        print("----------train data loader finish--------")
 
-            print("----------eval data loader start--------")
-            eval_data_loader = Data(data_eval, label_eval)
-            print("----------eval data loader finish--------")
+        print("----------eval data loader start--------")
+        eval_data_loader = Data(data_eval, label_eval)
+        print("----------eval data loader finish--------")
 
-            trainer = Trainer(registered_model, train_data_loader, eval_data_loader, model_path,
-                              config.num_epochs, config.batch_size, config.learning_rate,
-                              config.weight_decay, config.use_pos_weight, pos_weight,
-                              result_path,
-                              config.n_class, config.n_class_trans, config.load_trans_model, config.trans_model_path)
+        trainer = Trainer(registered_model, train_data_loader, eval_data_loader, model_path,
+                          config.num_epochs, config.batch_size, config.learning_rate,
+                          config.weight_decay, config.use_pos_weight, pos_weight,
+                          result_path,
+                          config.n_class, config.n_class_trans, config.load_trans_model, config.trans_model_path)
 
-            print("train start time: ", datetime.now())
-            trainer.train()  # include save model to destination
-            print("train end time: ", datetime.now())
+        print("train start time: ", datetime.now())
+        trainer.train()  # include save model to destination
+        print("train end time: ", datetime.now())
 
+        # test
 
-            # test
+        print("----------test data loader start--------")
+        test_data_loader = Data(data_test, label_test)
+        print("----------test data loader done--------")
 
-            print("----------test data loader start--------")
-            test_data_loader = Data(data_test, label_test)
-            print("----------test data loader done--------")
+        print("----------all data loader start--------")
 
-            print("----------all data loader start--------")
+        all_data_loader = Data(data, label)
 
-            all_data_loader = Data(data, label)
+        print("----------all data loader finish--------")
 
-            print("----------all data loader finish--------")
-
-            evaluator = Evaluator(registered_model, train_data_loader, test_data_loader, all_data_loader,
-                                  model_path,
-                                  result_path, config.batch_size, test_size,
-                                  config.n_class)
-            evaluator.evaluate()
+        evaluator = Evaluator(registered_model, train_data_loader, test_data_loader, all_data_loader,
+                              model_path,
+                              result_path, config.batch_size, test_size,
+                              config.n_class)
+        evaluator.evaluate()
 
 
     # elif args.step == "transfer_learning":
