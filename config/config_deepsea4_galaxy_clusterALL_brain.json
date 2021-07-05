@@ -13,8 +13,8 @@
   "cell_cluster": "all",
   "n_class": 6,
   "n_class_trans":8,
-  "model_path": "/home/yanweng/snp_effect/data/for_model_v2/output/0522_DeepSea4_negative10k_brain/model.pt",
-  "output_evaluation_data_path": "/home/yanweng/snp_effect/data/for_model_brain_corces/output/0606_deepsea_clusterALL_0kEncode_brain_max/",
+  "model_path": "/home/yanweng/snp_effect/data/for_model_brain_corces/output/0704_DeepSea4_negative10k_brain/model.pt",
+  "output_evaluation_data_path": "/home/yanweng/snp_effect/data/for_model_brain_corces/output/0704_DeepSea4_negative10k_brain/",
   "trans_model_path": "/home/yanweng/snp_effect/data/for_model_v2/output_trans/0329_chvon2_nobalance/model.pt",
   "subset": "False",
   "balance": "False"
