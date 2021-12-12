@@ -76,12 +76,12 @@ class Evaluator:
         y_test_fr_final = y_test_forward_reverse[0:self._test_size]
 
 
-        ## save the test_label and test_predicted
-        # np.save(os.path.join(self._output_evaluation_data_path, "p_test_fr_label.npy"),
-        #         y_test_fr_final)
-        #
-        # np.save(os.path.join(self._output_evaluation_data_path, "p_test_fr_pred.npy"),
-        #         p_test_fr_pred_final)
+        # save the test_label and test_predicted
+        np.save(os.path.join(self._output_evaluation_data_path, "p_test_fr_label.npy"),
+                y_test_fr_final)
+
+        np.save(os.path.join(self._output_evaluation_data_path, "p_test_fr_pred.npy"),
+                p_test_fr_pred_final)
 
         # double_check = y_test_forward_reverse[self._test_size:]
         # print("-------------- test_forward_reverse double check --------------")
@@ -127,6 +127,24 @@ class Evaluator:
             self._get_overall_performance_metrics_fr(y_test_fr_final, p_test_fr_pred_final, self._output_evaluation_data_path)
             self._plot_overall_roc_auc_paper(y_train, p_train_pred, y_test_fr_final, p_test_fr_pred_final, self._output_evaluation_data_path)
             self._plot_overall_rocpr(y_test_fr_final, p_test_fr_pred_final, self._output_evaluation_data_path)
+
+            # brain RF results
+            # rf_test_y = np.load("/home/yanweng/snp_effect/data/for_baseline_ml/result/brain_rf/test_label.npy")
+            # rf_test_y_hat = np.load("/home/yanweng/snp_effect/data/for_baseline_ml/result/brain_rf/test_pred.npy")
+
+            # pbmc
+            rf_test_y = np.load("/home/yanweng/snp_effect/data/for_baseline_ml/result/pbmc_rf/test_label.npy")
+            rf_test_y_hat = np.load("/home/yanweng/snp_effect/data/for_baseline_ml/result/pbmc_rf/test_pred.npy")
+
+
+            self._plot_overall_roc_auc_with_rf(y_train, p_train_pred, y_test_fr_final, p_test_fr_pred_final,
+                                               rf_test_y, rf_test_y_hat,
+                                               self._output_evaluation_data_path)
+            self._plot_overall_rocpr_with_rf(y_test_fr_final, p_test_fr_pred_final,
+                                               rf_test_y, rf_test_y_hat,
+                                               self._output_evaluation_data_path)
+
+
             print("multi-label metrics and roc curve done")
 
 
@@ -396,6 +414,42 @@ class Evaluator:
         plot_name = "test_micro_roc.pdf"
         plt.savefig(os.path.join(plot_path, plot_name))
 
+    ## add rf control
+    def _plot_overall_roc_auc_with_rf(self, y_train, y_train_hat, y_test, y_test_hat, rf_test_y, rf_test_y_hat, plot_path):
+
+        fpr, tpr, roc_auc = self._prepare_overall_roc(y_train, y_train_hat, y_test, y_test_hat)
+        fpr_rf, tpr_rf, _ = roc_curve(rf_test_y.ravel(), rf_test_y_hat.ravel(), sample_weight=None)
+        roc_auc_rf = auc(fpr_rf, tpr_rf)
+
+        plt.figure()
+
+        plt.plot(fpr["micro_test"], tpr["micro_test"],
+                 label='DeepLock(AUC {0:0.3f})'
+                       ''.format(roc_auc["micro_test"]),
+                 color='red',
+                 linestyle='solid', linewidth=2)
+
+        plt.plot(fpr_rf, tpr_rf,
+                 label='RF(AUC {0:0.3f})'
+                       ''.format(roc_auc_rf),
+                 color='navy',
+                 linestyle='solid', linewidth=2)
+
+        plt.plot([0, 1], [0, 1], 'k--')
+        plt.xlim([0.0, 1.0])
+        plt.ylim([0.0, 1.05])
+        plt.xlabel('False Positive Rate', size=24)
+        plt.ylabel('True Positive Rate', size=24)
+        plt.title("Receiver operating characteristic", size=24)
+        #plt.rc('xtick', labelsize=18)
+        #plt.rc('ytick', labelsize=18)
+        plt.xticks(fontsize=22)
+        plt.yticks(fontsize=22)
+        plt.legend(loc="lower right", prop={'size': 21})
+        plt.tight_layout()
+        plot_name = "test_micro_roc_with_RF.pdf"
+        plt.savefig(os.path.join(plot_path, plot_name))
+
     def _plot_overall_rocpr(self, y_test, y_test_hat, plot_path):
 
         precision, recall, _ = precision_recall_curve(y_test.ravel(), y_test_hat.ravel())
@@ -410,16 +464,56 @@ class Evaluator:
                  linestyle='solid', linewidth=2)
 
         plt.plot([0, 1], [1, 0], 'k--')
-        plt.xlim([0.0, 1.0])
+        plt.xlim([0.0, 1.0] )
         plt.ylim([0.0, 1.05])
-        plt.xlabel('Recall', size=20)
-        plt.ylabel('Precision', size=20)
-        plt.title("Precision-recall Curve", size=20)
-        plt.legend(loc="lower right", prop={'size': 20})
+        plt.xlabel('Recall', size=24)
+        plt.ylabel('Precision', size=24)
+        plt.title("Precision-recall Curve", size=24)
+        plt.legend(loc="lower right", prop={'size': 24})
         #plt.rc('xtick', labelsize=18)
         #plt.rc('ytick', labelsize=18)
-        plt.xticks(fontsize=18)
-        plt.yticks(fontsize=18)
+        plt.xticks(fontsize=22)
+        plt.yticks(fontsize=22)
         plt.tight_layout()
         plot_name = "test_precision_recall_curve.pdf"
+        plt.savefig(os.path.join(plot_path, plot_name))
+
+    ## add rf
+    def _plot_overall_rocpr_with_rf(self, y_test, y_test_hat, rf_test_y, rf_test_y_hat, plot_path):
+
+        precision, recall, _ = precision_recall_curve(y_test.ravel(), y_test_hat.ravel())
+        aupr = auc(recall, precision)
+
+        precision_rf, recall_rf, _ = precision_recall_curve(rf_test_y.ravel(), rf_test_y_hat.ravel())
+
+        #aupr_rf = auc(precision_rf, recall_rf)
+        aupr_rf = average_precision_score(rf_test_y, rf_test_y_hat, average="micro")
+
+        plt.figure()
+
+        plt.plot(recall, precision,
+                 label='DeepLock(AUPR={0:0.3f})'
+                       ''.format(aupr),
+                 color='red',
+                 linestyle='solid', linewidth=2)
+
+        plt.plot(recall_rf, precision_rf,
+                 label='RF(AUPR={0:0.3f})'
+                       ''.format(aupr_rf),
+                 color='navy',
+                 linestyle='solid', linewidth=2)
+
+        plt.plot([0, 1], [1, 0], 'k--')
+        plt.xlim([0.0, 1.0])
+        plt.ylim([0.0, 1.05])
+        plt.xlabel('Recall', size=24)
+        plt.ylabel('Precision', size=24)
+        plt.title("Precision-recall Curve", size=24)
+        plt.legend(loc="lower right", prop={'size': 21})
+        #plt.rc('xtick', labelsize=18)
+        #plt.rc('ytick', labelsize=18)
+        plt.xticks(fontsize=22)
+        plt.yticks(fontsize=22)
+        plt.tight_layout()
+        plot_name = "test_precision_recall_curve_with_rf.pdf"
         plt.savefig(os.path.join(plot_path, plot_name))

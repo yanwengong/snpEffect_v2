@@ -228,6 +228,7 @@ class Trainer:
                     file.write("{} \t {} \t{:.4f} \t {:.4f} \n".format(epoch+1, 'validation', eval_loss, eval_acc))
                     file.close()
 
+
             eval_loss_hist.append(eval_loss)
             eval_acc_hist.append(eval_acc)
 

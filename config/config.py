@@ -3,8 +3,10 @@ class Config():
     def __init__(self,
                  pos_forward_path,
                  encode_path,
+                 neg_path,
                  label_path,
                  encode_n,
+                 neg_n,
                  # X_train_data_path, # TODO: question, why these four does not have property functions
                  # X_test_data_path,
                  # y_train_data_path,
@@ -28,7 +30,9 @@ class Config():
         self.pos_forward_path = pos_forward_path
         self.encode_path = encode_path
         self.label_path = label_path
+        self.neg_path = neg_path
         self.encode_n = encode_n
+        self.neg_n = neg_n
         # self.X_train_data_path = X_train_data_path
         # self.X_test_data_path = X_test_data_path
         # self.y_train_data_path = y_train_data_path

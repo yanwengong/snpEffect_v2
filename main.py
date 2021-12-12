@@ -20,7 +20,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # 2\ Configure the Check the Environment.
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")# TODO CAN BE DELETED (Z) - DONE
 
     # tf.debugging.set_log_device_placement(False)
     # tf.config.set_soft_device_placement(True)
@@ -37,17 +37,18 @@ if __name__ == '__main__':
     registered_model = Model_Register(config.model_name)
 
     if config.cell_cluster == "all":
-        config.cell_cluster = list(range(0, config.n_class, 1))
+        config.cell_cluster = list(range(0, config.n_class, 1)) # TODO CAN PUT IN UTILIES (Z) - DONE
 
     print("create the output folder")
-    if not os.path.exists(config.output_evaluation_data_path):
+    if not os.path.exists(config.output_evaluation_data_path): # TODO CAN PUT IN UTILIES (Z) - DONE
         os.makedirs(config.output_evaluation_data_path)
 
     # 4\ Load, process and split the data set
 
-    if args.step == "main":
-        processor = Concate(config.pos_forward_path, config.encode_path, config.label_path,
-                            config.encode_n, config.cell_cluster, config.subset)
+    if args.step == "main": # TODO CHANGE TO arg.task (Z) - DONE
+        processor = Concate(config.pos_forward_path, config.encode_path, config.neg_path,
+                            config.label_path, config.encode_n, config.neg_n, config.cell_cluster,
+                            config.subset) # TODO CHANGE THE CONCATE TO PreProcessor (Z) - Done
         data, label, pos_weight = processor.concate_data()
 
         data_train, data_eval, data_test, label_train, \
@@ -59,13 +60,14 @@ if __name__ == '__main__':
     #data, label, pos_weight = processor.concate_data()
         data, label, pos_weight = processor.concate_data()
 
-        data_train, data_eval, data_test, label_train, label_eval, label_test = processor.split_train_test(data, label)
+        data_train, data_eval, data_test, label_train, \
+        label_eval, label_test, test_size = processor.split_train_test(data, label)
 
     # 4\ Selecting the execution mode.
     if args.exe_mode == 'train':
-        print("----------train data loader start--------")
+        print("----------train data loader start--------") # TODO WRITE FUNC IN ULTILES TO PRINT ---- (Z) - DONE
         print(config.cell_cluster)
-        train_data_loader = Data(data_train, label_train)
+        train_data_loader = Data(data_train, label_train) # TODO CHANGE TO DataLoader (Z)
 
         print("----------train data loader finish--------")
         print("----------eval data loader start--------")
@@ -77,8 +79,9 @@ if __name__ == '__main__':
 
         trainer = Trainer(registered_model, train_data_loader, eval_data_loader, config.model_path,
                           config.num_epochs, config.batch_size, config.learning_rate,
-                          config.weight_decay, config.use_pos_weight, pos_weight, config.output_evaluation_data_path,
-                          config.n_class, config.n_class_trans, config.load_trans_model, config.trans_model_path)
+                          config.weight_decay, config.use_pos_weight, pos_weight,
+                          config.output_evaluation_data_path, config.n_class, config.n_class_trans,
+                          config.load_trans_model, config.trans_model_path)
 
         print("train start time: ", datetime.now())
         trainer.train() # include save model to destination
@@ -101,7 +104,7 @@ if __name__ == '__main__':
 
         evaluator = Evaluator(registered_model, train_data_loader, test_data_loader, all_data_loader, config.model_path,
                               config.output_evaluation_data_path, config.batch_size, test_size,
-                              config.n_class)
+                              config.n_class) # TODO CHANGE TO Assessor (Z) - DONE
         evaluator.evaluate()
 
     else:
