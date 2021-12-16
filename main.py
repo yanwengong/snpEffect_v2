@@ -31,6 +31,9 @@ if __name__ == '__main__':
 
     if config.encode_n != 0:
         raise ValueError("Should not append any negative under the mode of train_test_by_chrom")
+    if config.neg_n != 0:
+        raise ValueError("Should not append any negative under the mode of train_test_by_chrom")
+
 
     print("create the output folder")
     if not os.path.exists(config.output_evaluation_data_path):
@@ -38,8 +41,8 @@ if __name__ == '__main__':
 
     # 4\ Load, process and split the data set
 
-    processor = Concate(config.pos_forward_path, config.encode_path, config.label_path,
-                        config.encode_n, config.cell_cluster, config.subset)
+    processor = Concate(config.pos_forward_path, config.encode_path, config.neg_path, config.label_path,
+                        config.encode_n, config.neg_n, config.cell_cluster, config.subset)
     data, label, pos_weight, loc_df_split = processor.concate_data()
     chr_id = loc_df_split.iloc[:, 0].unique()
 

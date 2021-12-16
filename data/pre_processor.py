@@ -5,18 +5,21 @@ from sklearn.utils.class_weight import compute_class_weight
 
 class Concate():
     # TODO: change the encode_path naming to neg_path
-    def __init__(self, pos_fasta_path, encode_path, label_path, encode_n, cell_cluster,
+    def __init__(self, pos_fasta_path, encode_path, neg_path, label_path, encode_n, neg_n, cell_cluster,
                  subset):
         self.pos_fasta_path = pos_fasta_path
         self.encode_path = encode_path
         self.label_path = label_path
         self.encode_n = encode_n
+        self.neg_n = neg_n
+        self.neg_path =neg_path
         self.cell_cluster = cell_cluster
         self.subset = subset
 
     def concate_data(self):
         pos_fasta = pd.read_csv(self.pos_fasta_path,sep=">chr*",header=None, engine='python').values[1::2][:,0] # (n,) array, each element is string, dtype=object
         encode_fasta = pd.read_csv(self.encode_path,sep=">chr*",header=None, engine='python').values[1::2][:,0]
+        neg_fasta = pd.read_csv(self.neg_path, sep=">chr*", header=None, engine='python').values[1::2][:, 0]
         label = pd.read_csv(self.label_path, delimiter = ",", header=None) ## TODO check these are np array
 
         print("-----------finish pd read_csv------------")
@@ -24,20 +27,20 @@ class Concate():
         print("pos_size")
         print(pos_fasta.shape) #(114538,)
         print("neg_size")
-        print(encode_fasta.shape) #(1127227,)
+        print(neg_fasta.shape) #(1127227,)
         print("label")
         print(label.shape) #(114538, 1)
 
         np.random.seed(202101190)
-        encode_index = np.random.choice(encode_fasta.shape[0], size=self.encode_n, replace=False)
-        encode_fasta = encode_fasta[encode_index]
+        neg_index = np.random.choice(neg_fasta.shape[0], size=self.neg_n, replace=False)
+        neg_fasta = neg_fasta[neg_index]
 
         ## get the df of index of each chrom
         loc = pd.read_csv(self.pos_fasta_path,sep=">chr*",header=None, engine='python').values[0::2][:, 1]
         loc_df = pd.DataFrame(data={'loc': loc})
         loc_df_split = loc_df.iloc[:, 0].str.split(":", expand=True)
 
-        data = np.concatenate([pos_fasta, encode_fasta])
+        data = np.concatenate([pos_fasta, neg_fasta])
         #encode_n = int(encode_fasta.shape[0]) ## check if need to devide by 2
         # label = label.iloc[:,0].str.strip("{}").str.get_dummies(',').rename(
         #     columns=lambda x: x.strip("'"))
@@ -49,7 +52,7 @@ class Concate():
 
         label = label[:, self.cell_cluster] ## select the cluster for label
 
-        neg_label = np.zeros((self.encode_n, len(self.cell_cluster)))
+        neg_label = np.zeros((self.neg_n, len(self.cell_cluster)))
 
         label = np.concatenate([label, neg_label])
 
